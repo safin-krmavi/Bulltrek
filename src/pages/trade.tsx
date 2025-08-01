@@ -119,7 +119,9 @@ export default function TradePage() {
             datafeed: new (window as any).Datafeeds.UDFCompatibleDatafeed(
               "https://demo-feed-data.tradingview.com"
             ),
+            // datafeed: customDatafeed,
             symbol: "AAPL",
+            // symbol: "BTCUSDT",
             interval: "1D",
             fullscreen: true,
             debug: true,

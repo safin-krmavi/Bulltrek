@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import { BadgeCustom } from "@/components/ui/badge-custom"
 import { Search } from 'lucide-react'
 
+
 // Generate dummy chart data
 const generateChartData = () => {
   return Array.from({ length: 20 }, (_, i) => ({
@@ -22,6 +23,17 @@ const tradingCards = Array.from({ length: 8 }, (_, i) => ({
   type: i % 2 === 0 ? "Forward" : "Spot grid" as "Forward" | "Spot grid",
   aiStatus: "AI: Balanced"
 }))
+const tradingCards2 = Array.from({ length: 8 }, (_, i) => ({
+  pair: "ETH/USDT",
+  apy: 88.43,
+  investment: 14.722,
+  duration: "9-30 Days",
+  followers: 852,
+  chartData: generateChartData(),
+  type: i % 2 === 0 ? "Forward" : "Spot grid" as "Forward" | "Spot grid",
+  aiStatus: "AI: Balanced"
+}))
+
 
 export default function MarketPlacePage() {
   return (
@@ -92,7 +104,10 @@ export default function MarketPlacePage() {
               className="px-4 py-2 rounded-t-md data-[state=active]:bg-[#581C3D] data-[state=active]:text-white"
             >
               Seller Reputation
-            </TabsTrigger>
+            </TabsTrigger> 
+           <TabsTrigger value="binance" className="px-4 py-2 rounded-t-md data-[state=active]:bg-[#581C3D] data-[state=active]:text-white">
+  Binance
+</TabsTrigger>
           </TabsList>
         </div>
 
@@ -118,6 +133,16 @@ export default function MarketPlacePage() {
             </div>
           </TabsContent>
         ))}
+
+        <TabsContent value="binance" className="space-y-4 mt-4">
+          <div className="text-sm text-gray-500 capitalize">Binance</div>
+          <div className="flex overflow-x-auto pb-4 gap-4 scrollbar-hide">
+            {Array.from({ length: Math.max(tradingCards.length, tradingCards2.length) }).flatMap((_, i) => [
+              tradingCards[i] && <TradingCard key={`tc1-${i}`} {...tradingCards[i]} />,
+              tradingCards2[i] && <TradingCard key={`tc2-${i}`} {...tradingCards2[i]} />
+            ]).filter(Boolean)}
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   )
