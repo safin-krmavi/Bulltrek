@@ -7,49 +7,16 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { AccountDetailsCard } from "@/components/trade/AccountDetailsCard"
 import { brokerageService } from "@/api/brokerage"
-import apiClient from "@/api/apiClient"
-import { useToast } from "@/hooks/use-toast"
-import { StrategyResponsePopup } from "@/components/ui/strategy-response-popup"
-
-interface SmartGridStrategyConfig {
-  symbol: string;
-  quantity: number;
-  grid_size: number;
-}
-
-interface StrategyDetails {
-  id: number;
-  name: string;
-  // Add other fields as needed based on the API response
-}
 
 export default function SmartGrid() {
   const [isOpen, setIsOpen] = React.useState(true)
+  const [isAdvancedOpen, setIsAdvancedOpen] = React.useState(false)
   const [selectedApi, setSelectedApi] = React.useState("")
   const [isBrokeragesLoading, setIsBrokeragesLoading] = React.useState(false)
   const [brokerages, setBrokerages] = React.useState([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [strategyDetails, setStrategyDetails] = useState<StrategyDetails | null>(null)
-  const [isStrategyLoading, setIsStrategyLoading] = useState(false)
-  const [showResponsePopup, setShowResponsePopup] = useState(false)
-  const [responseData, setResponseData] = useState<any>(null)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const { toast } = useToast()
-
-  // Function to handle banner close - only called when user explicitly clicks close
-  const handleBannerClose = () => {
-    setShowResponsePopup(false)
-  }
-
-  // Form state
-  const [formData, setFormData] = useState<SmartGridStrategyConfig>({
-    symbol: "BTCUSDT",
-    quantity: 0.001,
-    grid_size: 3
-  })
 
   useEffect(() => {
     async function fetchBrokerages() {
@@ -66,208 +33,147 @@ export default function SmartGrid() {
     fetchBrokerages()
   }, [])
 
-  useEffect(() => {
-    async function fetchStrategyDetails() {
-      setIsStrategyLoading(true)
-      try {
-        const response = await apiClient.get('/api/v1/strategies/2')
-        
-        // Handle different possible response structures
-        const strategyData = response.data?.data || response.data
-        
-        if (strategyData && strategyData.name) {
-          setStrategyDetails(strategyData)
-        } else {
-          // Set a fallback with the data we have
-          setStrategyDetails({
-            id: 2,
-            name: strategyData?.name || 'Smart Grid Strategy'
-          })
-        }
-      } catch (error: any) {
-        console.error('Failed to fetch strategy details:', error)
-        toast({
-          title: "Error",
-          description: `Failed to load strategy details: ${error.response?.data?.message || error.message}`,
-          variant: "destructive"
-        })
-        // Set fallback strategy details
-        setStrategyDetails({
-          id: 2,
-          name: 'Smart Grid Strategy'
-        })
-      } finally {
-        setIsStrategyLoading(false)
-      }
-    }
-    fetchStrategyDetails()
-  }, [toast])
-
-  const handleInputChange = (field: keyof SmartGridStrategyConfig, value: string | number) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: field === 'quantity' || field === 'grid_size' ? parseFloat(value as string) || 0 : value
-    }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!selectedApi) {
-      toast({
-        title: "Error",
-        description: "Please select an API connection first",
-        variant: "destructive"
-      })
-      return
-    }
-
-    if (formData.grid_size <= 0) {
-      toast({
-        title: "Error",
-        description: "Grid size must be greater than 0",
-        variant: "destructive"
-      })
-      return
-    }
-
-    if (formData.quantity <= 0) {
-      toast({
-        title: "Error",
-        description: "Quantity must be greater than 0",
-        variant: "destructive"
-      })
-      return
-    }
-
-    setIsSubmitting(true)
-    try {
-      const response = await apiClient.post('/api/v1/strategies/2/run', {
-        config: formData
-      })
-      
-      setResponseData(response.data)
-      setIsSuccess(true)
-      setShowResponsePopup(true)
-      
-      console.log('Strategy response:', response.data)
-    } catch (error: any) {
-      console.error('Strategy execution error:', error)
-      setResponseData(error.response?.data || { message: error.message })
-      setIsSuccess(false)
-      setShowResponsePopup(true)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleReset = () => {
-    setFormData({
-      symbol: "BTCUSDT",
-      quantity: 0.001,
-      grid_size: 3
-    })
-  }
-
   return (
-    <div className="w-full max-w-xl rounded-full mx-auto">
-      <AccountDetailsCard
-        selectedApi={selectedApi}
-        setSelectedApi={setSelectedApi}
-        isBrokeragesLoading={isBrokeragesLoading}
-        brokerages={brokerages}
-      />
-      <form onSubmit={handleSubmit} className="space-y-4 gap-4 dark:bg-[#232326] dark:text-white mt-2">
+    <div className="w-full max-w-md mx-auto">
+           <AccountDetailsCard
+     selectedApi={selectedApi}
+     setSelectedApi={setSelectedApi}
+     isBrokeragesLoading={isBrokeragesLoading}
+     brokerages={brokerages}
+   />
+      <form className="space-y-4 mt-4 dark:text-white">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-t-md bg-[#4A1C24] text-white p-4 font-medium hover:bg-[#5A2525] transition-colors duration-200">
-            <span>
-              {isStrategyLoading ? "Loading Strategy..." : strategyDetails?.name || "Smart Grid Strategy Configuration"}
-            </span>
+          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-t-md bg-[#4A1515] p-4 border border-t-0 font-medium text-white hover:bg-[#5A2525]">
+            <span>Smart Grid</span>
             <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 rounded-b-md border border-border border-t-0 bg-card p-4">
-
+          <CollapsibleContent className="space-y-4 rounded-b-md border border-t-0 p-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                Trading Symbol
+                Strategy Name
                 <span className="text-muted-foreground">ⓘ</span>
               </Label>
-              <Select 
-                value={formData.symbol} 
-                onValueChange={(value) => handleInputChange('symbol', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="BTCUSDT">BTCUSDT</SelectItem>
-                  <SelectItem value="ETHUSDT">ETHUSDT</SelectItem>
-                  <SelectItem value="ADAUSDT">ADAUSDT</SelectItem>
-                  <SelectItem value="DOTUSDT">DOTUSDT</SelectItem>
-                  <SelectItem value="LINKUSDT">LINKUSDT</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input placeholder="Enter Name" />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Select Type</Label>
+              <div className="grid grid-cols-3 gap-2">
+                <Button variant="outline">Neutral</Button>
+                <Button variant="outline">Long</Button>
+                <Button variant="outline">Short</Button>
+              </div>
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                Quantity
+                Data Set
                 <span className="text-muted-foreground">ⓘ</span>
               </Label>
-              <Input 
-                type="number"
-                step="0.001"
-                placeholder="0.001"
-                value={formData.quantity}
-                onChange={(e) => handleInputChange('quantity', e.target.value)}
-              />
-              <p className="text-sm text-muted-foreground">Enter the trading quantity per grid level</p>
+              <div className="grid grid-cols-5 gap-2">
+                <Button variant="outline" size="sm">3D</Button>
+                <Button variant="outline" size="sm">7D</Button>
+                <Button variant="outline" size="sm">30D</Button>
+                <Button variant="outline" size="sm">180D</Button>
+                <Button variant="outline" size="sm">365D</Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  Lower Limit
+                  <span className="text-muted-foreground">ⓘ</span>
+                </Label>
+                <div className="flex gap-2">
+                  <Input placeholder="Value" />
+                  <div className="w-[100px] rounded-md border px-3 py-2">USTD</div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  Upper Limit
+                  <span className="text-muted-foreground">ⓘ</span>
+                </Label>
+                <div className="flex gap-2">
+                  <Input placeholder="Value" />
+                  <div className="w-[100px] rounded-md border px-3 py-2">USTD</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Levels</Label>
+              <Input placeholder="Value" />
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                Grid Size
+                Profit per Level
                 <span className="text-muted-foreground">ⓘ</span>
               </Label>
-              <Input 
-                type="number"
-                step="1"
-                min="1"
-                max="20"
-                placeholder="3"
-                value={formData.grid_size}
-                onChange={(e) => handleInputChange('grid_size', e.target.value)}
-              />
-              <p className="text-sm text-muted-foreground">Number of grid levels (1-20)</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative">
+                  <Input placeholder="Value" />
+                  <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
+                </div>
+                <div className="relative">
+                  <Input placeholder="Value" />
+                  <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                Investment
+                <span className="text-muted-foreground">ⓘ</span>
+              </Label>
+              <div className="flex gap-2">
+                <Input placeholder="Value" />
+                <div className="w-[100px] rounded-md border px-3 py-2">USTD</div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Minimum Investment</Label>
+              <Input placeholder="Value" />
             </div>
           </CollapsibleContent>
         </Collapsible>
 
-        <div className="flex justify-center gap-4 pt-2">
-          <Button 
-            type="submit"
-            disabled={isSubmitting || !selectedApi || formData.grid_size <= 0 || formData.quantity <= 0}
-            className="w-fit px-6 bg-[#4A1C24] hover:bg-[#5A2525] text-white shadow-md transition-colors duration-200 disabled:opacity-50"
-          >
-            {isSubmitting ? "Executing..." : "Execute Strategy"}
-          </Button>
-          <Button 
-            type="button"
-            onClick={handleReset}
-            className="w-fit px-4 bg-[#D97706] hover:bg-[#B45309] text-white shadow-md transition-colors duration-200"
-          >
+        <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
+          <CollapsibleTrigger className="flex w-full items-center justify-between border border-t-0 rounded-t-md bg-[#4A1515] p-4 font-medium text-white hover:bg-[#5A2525]">
+            <span>Advanced Settings</span>
+            <ChevronDown className={`h-4 w-4 transition-transform ${isAdvancedOpen ? "rotate-180" : ""}`} />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4 rounded-b-md border border-t-0 p-4">
+            <div className="space-y-2">
+              <Label>Stop Grid Loss</Label>
+              <div className="flex gap-2">
+                <Input placeholder="Numeric Value" />
+                <Select defaultValue="point-9">
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue placeholder="Point 9" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="point-9">Point 9</SelectItem>
+                    <SelectItem value="point-8">Point 8</SelectItem>
+                    <SelectItem value="point-7">Point 7</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        <div className="flex gap-4">
+          <Button className="flex-1 bg-[#4A1515] hover:bg-[#5A2525]">Proceed</Button>
+          <Button variant="outline" className="flex-1 bg-[#D97706] text-white hover:bg-[#B45309]">
             Reset
           </Button>
         </div>
       </form>
-      
-      <StrategyResponsePopup
-        isOpen={showResponsePopup}
-        onClose={handleBannerClose}
-        response={responseData}
-        isSuccess={isSuccess}
-        strategyName={strategyDetails?.name || "Smart Grid Strategy"}
-      />
     </div>
   )
 }

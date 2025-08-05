@@ -7,65 +7,19 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useEffect, useState } from "react"
+// import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+// import { cn } from "@/lib/utils"
+import { useEffect } from "react"
 import { AccountDetailsCard } from "@/components/trade/AccountDetailsCard"
 import { brokerageService } from "@/api/brokerage"
-import apiClient from "@/api/apiClient"
-import { useToast } from "@/hooks/use-toast"
-import { StrategyResponsePopup } from "@/components/ui/strategy-response-popup"
-
-interface PriceActionStrategyConfig {
-  symbol: string;
-  quantity: number;
-  patterns: string[];
-}
-
-interface StrategyDetails {
-  id: number;
-  name: string;
-  // Add other fields as needed based on the API response
-}
 
 export default function PriceAction() {
   const [isOpen, setIsOpen] = React.useState(true)
+  const [isAdvancedOpen, setIsAdvancedOpen] = React.useState(false)
+  // const [accountDetailsOpen, setAccountDetailsOpen] = React.useState(true)
   const [selectedApi, setSelectedApi] = React.useState("")
   const [isBrokeragesLoading, setIsBrokeragesLoading] = React.useState(false)
   const [brokerages, setBrokerages] = React.useState([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [strategyDetails, setStrategyDetails] = useState<StrategyDetails | null>(null)
-  const [isStrategyLoading, setIsStrategyLoading] = useState(false)
-  const [showResponsePopup, setShowResponsePopup] = useState(false)
-  const [responseData, setResponseData] = useState<any>(null)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const { toast } = useToast()
-
-  // Function to handle banner close - only called when user explicitly clicks close
-  const handleBannerClose = () => {
-    setShowResponsePopup(false)
-  }
-
-  // Form state
-  const [formData, setFormData] = useState<PriceActionStrategyConfig>({
-    symbol: "BTCUSDT",
-    quantity: 0.001,
-    patterns: ["bullish_engulfing", "hammer"]
-  })
-
-  // Available candlestick patterns
-  const availablePatterns = [
-    { id: "bullish_engulfing", label: "Bullish Engulfing" },
-    { id: "bearish_engulfing", label: "Bearish Engulfing" },
-    { id: "hammer", label: "Hammer" },
-    { id: "shooting_star", label: "Shooting Star" },
-    { id: "doji", label: "Doji" },
-    { id: "morning_star", label: "Morning Star" },
-    { id: "evening_star", label: "Evening Star" },
-    { id: "three_white_soldiers", label: "Three White Soldiers" },
-    { id: "three_black_crows", label: "Three Black Crows" },
-    { id: "piercing_line", label: "Piercing Line" },
-    { id: "dark_cloud_cover", label: "Dark Cloud Cover" }
-  ]
 
   useEffect(() => {
     async function fetchBrokerages() {
@@ -82,215 +36,137 @@ export default function PriceAction() {
     fetchBrokerages()
   }, [])
 
-  useEffect(() => {
-    async function fetchStrategyDetails() {
-      setIsStrategyLoading(true)
-      try {
-        const response = await apiClient.get('/api/v1/strategies/7')
-        
-        // Handle different possible response structures
-        const strategyData = response.data?.data || response.data
-        
-        if (strategyData && strategyData.name) {
-          setStrategyDetails(strategyData)
-        } else {
-          // Set a fallback with the data we have
-          setStrategyDetails({
-            id: 7,
-            name: strategyData?.name || 'Price Action Strategy'
-          })
-        }
-      } catch (error: any) {
-        console.error('Failed to fetch strategy details:', error)
-        toast({
-          title: "Error",
-          description: `Failed to load strategy details: ${error.response?.data?.message || error.message}`,
-          variant: "destructive"
-        })
-        // Set fallback strategy details
-        setStrategyDetails({
-          id: 7,
-          name: 'Price Action Strategy'
-        })
-      } finally {
-        setIsStrategyLoading(false)
-      }
-    }
-    fetchStrategyDetails()
-  }, [toast])
-
-  const handleInputChange = (field: keyof PriceActionStrategyConfig, value: string | number | string[]) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: field === 'quantity' ? parseFloat(value as string) || 0 : value
-    }))
-  }
-
-  const handlePatternToggle = (patternId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      patterns: prev.patterns.includes(patternId)
-        ? prev.patterns.filter(id => id !== patternId)
-        : [...prev.patterns, patternId]
-    }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!selectedApi) {
-      toast({
-        title: "Error",
-        description: "Please select an API connection first",
-        variant: "destructive"
-      })
-      return
-    }
-
-    if (formData.patterns.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please select at least one candlestick pattern",
-        variant: "destructive"
-      })
-      return
-    }
-
-    setIsSubmitting(true)
-    try {
-      const response = await apiClient.post('/api/v1/strategies/7/run', {
-        config: formData
-      })
-      
-      setResponseData(response.data)
-      setIsSuccess(true)
-      setShowResponsePopup(true)
-      
-      console.log('Strategy response:', response.data)
-    } catch (error: any) {
-      console.error('Strategy execution error:', error)
-      setResponseData(error.response?.data || { message: error.message })
-      setIsSuccess(false)
-      setShowResponsePopup(true)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleReset = () => {
-    setFormData({
-      symbol: "BTCUSDT",
-      quantity: 0.001,
-      patterns: ["bullish_engulfing", "hammer"]
-    })
-  }
-
   return (
-    <div>
-      <AccountDetailsCard
-        selectedApi={selectedApi}
-        setSelectedApi={setSelectedApi}
-        isBrokeragesLoading={isBrokeragesLoading}
-        brokerages={brokerages}
-      />
-      <form onSubmit={handleSubmit} className="space-y-4 dark:bg-[#232326] dark:text-white mt-2">
+    <div className="w-full max-w-md mx-auto">
+         <AccountDetailsCard
+     selectedApi={selectedApi}
+     setSelectedApi={setSelectedApi}
+     isBrokeragesLoading={isBrokeragesLoading}
+     brokerages={brokerages}
+   />
+      <form className="space-y-4 mt-4 dark:text-white">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <CollapsibleTrigger className="flex w-full items-center justify-between bg-[#4A1C24] text-white rounded-t-md p-4 font-medium hover:bg-[#5A2525] transition-colors duration-200">
-            <span>
-              {isStrategyLoading ? "Loading Strategy..." : strategyDetails?.name || "Price Action Strategy Configuration"}
-            </span>
+          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-t-md bg-[#4A1515] p-4 font-medium text-white  border border-t-0 hover:bg-[#5A2525]">
+            <span>Price Action</span>
             <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 rounded-b-md border border-border border-t-0 bg-card p-4">
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                Trading Symbol
-                <span className="text-muted-foreground">ⓘ</span>
-              </Label>
-              <Select 
-                value={formData.symbol} 
-                onValueChange={(value) => handleInputChange('symbol', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="BTCUSDT">BTCUSDT</SelectItem>
-                  <SelectItem value="ETHUSDT">ETHUSDT</SelectItem>
-                  <SelectItem value="ADAUSDT">ADAUSDT</SelectItem>
-                  <SelectItem value="DOTUSDT">DOTUSDT</SelectItem>
-                  <SelectItem value="LINKUSDT">LINKUSDT</SelectItem>
-                </SelectContent>
-              </Select>
+          <CollapsibleContent className="space-y-4 rounded-b-md border border-t-0 p-4">
+            <div className="grid grid-cols-3 gap-2">
+              <Button variant="outline" className="bg-[#D97706] text-white hover:bg-[#B45309]">
+                Safe
+              </Button>
+              <Button variant="outline">Moderate</Button>
+              <Button variant="outline">Risky</Button>
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                Quantity
+                Strategy Name
                 <span className="text-muted-foreground">ⓘ</span>
               </Label>
-              <Input 
-                type="number"
-                step="0.001"
-                placeholder="0.001"
-                value={formData.quantity}
-                onChange={(e) => handleInputChange('quantity', e.target.value)}
-              />
-              <p className="text-sm text-muted-foreground">Enter the trading quantity</p>
+              <Input placeholder="Enter Name" />
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                Candlestick Patterns
+                Investment
                 <span className="text-muted-foreground">ⓘ</span>
               </Label>
-              <div className="grid grid-cols-2 gap-3">
-                {availablePatterns.map((pattern) => (
-                  <div key={pattern.id} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={pattern.id}
-                      checked={formData.patterns.includes(pattern.id)}
-                      onCheckedChange={() => handlePatternToggle(pattern.id)}
-                    />
-                    <Label htmlFor={pattern.id} className="text-sm font-medium">
-                      {pattern.label}
-                    </Label>
-                  </div>
-                ))}
+              <div className="flex gap-2">
+                <Input placeholder="Value" />
+                <Select defaultValue="USTD">
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USTD">USTD</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Selected patterns: {formData.patterns.length > 0 ? formData.patterns.join(', ') : 'None'}
-              </p>
+              <p className="text-sm text-orange-500">Avbl: 389 USTD</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                Investment CAP
+                <span className="text-muted-foreground">ⓘ</span>
+              </Label>
+              <div className="flex gap-2">
+                <Input placeholder="Value" />
+                <Select defaultValue="USTD">
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USTD">USTD</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CollapsibleContent>
         </Collapsible>
 
-        <div className="flex justify-center gap-4 pt-2">
-          <Button 
-            type="submit"
-            disabled={isSubmitting || !selectedApi || formData.patterns.length === 0}
-            className="w-fit px-6 bg-[#4A1C24] hover:bg-[#5A2525] text-white shadow-md transition-colors duration-200 disabled:opacity-50"
-          >
-            {isSubmitting ? "Executing..." : "Execute Strategy"}
-          </Button>
-          <Button 
-            type="button"
-            onClick={handleReset}
-            className="w-fit px-4 bg-[#D97706] hover:bg-[#B45309] text-white shadow-md transition-colors duration-200"
-          >
+        <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
+          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-t-md bg-[#4A1515] p-4  border border-t-0 font-medium text-white hover:bg-[#5A2525]">
+            <span>Advanced Settings</span>
+            <ChevronDown className={`h-4 w-4 transition-transform ${isAdvancedOpen ? "rotate-180" : ""}`} />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4 rounded-b-md border border-t-0 p-4">
+            <div className="space-y-2">
+              <Label>Price Trigger Start</Label>
+              <div className="flex gap-2">
+                <Input placeholder="Value" />
+                <Select defaultValue="USTD">
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USTD">USTD</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Price Trigger Stop</Label>
+              <div className="flex gap-2">
+                <Input placeholder="Value" />
+                <Select defaultValue="USTD">
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USTD">USTD</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Take Profit</Label>
+              <div className="relative">
+                <Input placeholder="Value" />
+                <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Stop Loss By</Label>
+              <div className="relative">
+                <Input placeholder="Value" />
+                <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        <div className="flex gap-4">
+          <Button className="flex-1 bg-[#4A1515] hover:bg-[#5A2525]">Proceed</Button>
+          <Button variant="outline" className="flex-1 bg-[#D97706] text-white hover:bg-[#B45309]">
             Reset
           </Button>
         </div>
       </form>
-      
-      <StrategyResponsePopup
-        isOpen={showResponsePopup}
-        onClose={handleBannerClose}
-        response={responseData}
-        isSuccess={isSuccess}
-        strategyName={strategyDetails?.name || "Price Action Strategy"}
-      />
     </div>
   )
 }
