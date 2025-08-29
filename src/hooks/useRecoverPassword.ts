@@ -16,7 +16,7 @@ interface RecoverPasswordResponse {
 export function useRecoverPassword() {
   return useMutation<RecoverPasswordResponse, Error, RecoverPasswordRequest>({
     mutationFn: (data) => 
-      apiClient.post("/api/v1/reset-password", {
+      apiClient.post("/reset-password", {
         password: data.newPassword,
         password_confirmation: data.confirmPassword,
         token: data.token

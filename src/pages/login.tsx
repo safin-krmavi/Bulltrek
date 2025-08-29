@@ -74,7 +74,7 @@ const LoginPage = () => {
     const loadingToast = toast.loading("Sending reset link... Please wait.");
     
     try {
-      const response = await apiClient.post("/api/v1/forgot-password", { 
+      const response = await apiClient.post("/forgot-password", { 
         email: values.email 
       });
       

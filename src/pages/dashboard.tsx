@@ -40,7 +40,7 @@ import { createPortal } from "react-dom";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import apiClient from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { CollapsibleCard } from "@/components/collapsible-card";
 // import StrategyBuilder from '@/components/strategy/StrategyBuilder'
@@ -115,7 +115,7 @@ function useStrategies() {
   return useQuery({
     queryKey: ["strategies"],
     queryFn: async () => {
-      const response = await apiClient.get("/api/v1/strategies");
+      const response = await apiClient.get("/strategies");
       return response.data;
     },
     retry: 1,
@@ -152,7 +152,7 @@ export default function Dashboard({ userId }: { userId?: string }) {
     plan: true,
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [strategyTablePage, setStrategyTablePage] = useState(1);
+  // const [strategyTablePage] = useState(1);
   const strategiesPerPage = 4;
 
   // Add this state to track which menu is open
@@ -228,11 +228,11 @@ export default function Dashboard({ userId }: { userId?: string }) {
   // Fetch strategies
   const {
     data: strategies,
-    isLoading: isStrategiesLoading,
-    error: strategiesError,
+    // isLoading: isStrategiesLoading,
+    // error: strategiesError,
   } = useStrategies();
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   useEffect(() => {
     toast.dismiss();
@@ -414,22 +414,22 @@ export default function Dashboard({ userId }: { userId?: string }) {
   const totalPages = Math.ceil(strategyData.length / strategiesPerPage);
 
   // Pagination logic for strategy table
-  const strategyTableIndexOfLast = strategyTablePage * strategiesPerPage;
-  const strategyTableIndexOfFirst = strategyTableIndexOfLast - strategiesPerPage;
-  const currentStrategyTableItems = Array.isArray(strategies?.data) 
-    ? strategies.data.slice(strategyTableIndexOfFirst, strategyTableIndexOfLast)
-    : [];
-  const strategyTableTotalPages = Array.isArray(strategies?.data) 
-    ? Math.ceil(strategies.data.length / strategiesPerPage)
-    : 0;
+  // const strategyTableIndexOfLast = strategyTablePage * strategiesPerPage;
+  // const strategyTableIndexOfFirst = strategyTableIndexOfLast - strategiesPerPage;
+  // const currentStrategyTableItems = Array.isArray(strategies?.data) 
+  //   ? strategies.data.slice(strategyTableIndexOfFirst, strategyTableIndexOfLast)
+  //   : [];
+  // const strategyTableTotalPages = Array.isArray(strategies?.data) 
+  //   ? Math.ceil(strategies.data.length / strategiesPerPage)
+  //   : 0;
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
-  const handleStrategyTablePageChange = (page: number) => {
-    setStrategyTablePage(page);
-  };
+  // const handleStrategyTablePageChange = (page: number) => {
+  //   setStrategyTablePage(page);
+  // };
 
   console.log("Strategies:", strategies);
   console.log("Bots:", bots);
@@ -900,206 +900,6 @@ export default function Dashboard({ userId }: { userId?: string }) {
             </Collapsible>
           </div>
         </div>
-
-        {/* Live Orders Section */}
-        {/* <Card className="bg-card dark:bg-[#232326] border border-border dark:border-gray-700 shadow-lg text-foreground dark:text-white rounded-lg shadow-sm mt-6 mb-6 transition-colors duration-300">
-          <CardHeader className="bg-[#4A0D0D] text-white rounded-t-lg flex">
-            <CardTitle className="text-lg font-medium">
-              Binance Live Orders
-            </CardTitle> */}
-            {/* <RefreshCw className={`h-4 w-4 ${isLiveOrdersLoading ? 'animate-spin' : ''}`} /> */}
-          {/* </CardHeader> */}
-          {/* <CardContent className="p-0">
-            <div className="max-h-[400px] overflow-y-auto">
-              <Table>
-                <TableHeader className="sticky top-0 z-10">
-                  <TableRow>
-                    <TableHead>Symbol</TableHead>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Side</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Time</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLiveOrdersLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-4">
-                        Loading live orders...
-                      </TableCell>
-                    </TableRow>
-                  ) : !liveOrders?.data?.length ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-4">
-                        No live orders available
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    liveOrders.data.map((order: LiveOrder) => (
-                      <TableRow
-                        key={order.orderId}
-                        className="hover:bg-muted/50"
-                      >
-                        <TableCell>{order.symbol}</TableCell>
-                        <TableCell>{order.orderId}</TableCell>
-                        <TableCell>{order.type}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              order.side === "BUY" ? "success" : "destructive"
-                            }
-                          >
-                            {order.side}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {parseFloat(order.price) === 0
-                            ? "MARKET"
-                            : parseFloat(order.price).toFixed(2)}
-                        </TableCell>
-                        <TableCell>
-                          {parseFloat(order.origQty).toFixed(8)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              order.status === "FILLED"
-                                ? "success"
-                                : order.status === "CANCELED"
-                                ? "destructive"
-                                : "warning"
-                            }
-                          >
-                            {order.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(order.time).toLocaleString()}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent> */}
-        {/* </Card> */}
-        {/* Create Strategy Button above the Strategy Table */}
-        {/* Strategy Table Section */}
-        <Card className="bg-card dark:bg-[#232326] border border-border dark:border-gray-700 shadow-lg text-foreground dark:text-white rounded-lg shadow-sm mt-4 transition-colors duration-300">
-          <CardHeader className="bg-[#4A0D0D] dark:bg-[#3b3b41] text-white rounded-t-lg transition-colors duration-300 dark:text-white">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-medium">
-                Strategy Table
-              </CardTitle>
-              <Button
-                className="bg-[#FF8C00] text-white hover:bg-[#FFA500]"
-                onClick={() => navigate("/strategy-builder")}
-              >
-                Create Strategy
-              </Button>
-            </div>
-            {/* <CardTitle className="text-lg font-medium">Strategy Table</CardTitle> */}
-          </CardHeader>
-          <CardContent className="p-0">
-            {isStrategiesLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <TableCell colSpan={8} className="text-center py-4">
-                  Loading Strategies please wait...
-                </TableCell>
-              </div>
-            ) : strategiesError ? (
-              <div className="flex justify-center items-center h-64 text-red-600">
-                Error loading strategies.
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Strategy Name</TableHead>
-                    <TableHead>Created At</TableHead>
-                    <TableHead>Updated At</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentStrategyTableItems.length > 0 ? (
-                    currentStrategyTableItems.map((strategy: any) => (
-                      <TableRow key={strategy.id}>
-                        <TableCell>
-                          {strategy.name || strategy.strategy_name || "-"}
-                        </TableCell>
-                        <TableCell>
-                          {strategy.created_at
-                            ? new Date(strategy.created_at).toLocaleString()
-                            : "-"}
-                        </TableCell>
-                        <TableCell>
-                          {strategy.updated_at
-                            ? new Date(strategy.updated_at).toLocaleString()
-                            : "-"}
-                        </TableCell>
-                        <TableCell>{strategy.status || "-"}</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center">
-                        No strategies found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            )}
-            {/* Pagination for Strategy Table */}
-            {strategyTableTotalPages > 1 && (
-              <div className="p-4 flex items-center justify-between text-sm">
-                <div>
-                  {strategyTableIndexOfFirst + 1}-{Math.min(strategyTableIndexOfLast, Array.isArray(strategies?.data) ? strategies.data.length : 0)} of {Array.isArray(strategies?.data) ? strategies.data.length : 0} entries
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    disabled={strategyTablePage === 1}
-                    onClick={() => handleStrategyTablePageChange(strategyTablePage - 1)}
-                  >
-                    Previous
-                  </Button>
-                  {Array.from({ length: strategyTableTotalPages }, (_, i) => i + 1).map((page) => (
-                    <Button
-                      key={page}
-                      variant="outline"
-                      size="sm"
-                      className={strategyTablePage === page ? "bg-[#4A0D0D] text-white" : ""}
-                      onClick={() => handleStrategyTablePageChange(page)}
-                    >
-                      {page}
-                    </Button>
-                  ))}
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    disabled={strategyTablePage === strategyTableTotalPages}
-                    onClick={() => handleStrategyTablePageChange(strategyTablePage + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </main>
       {/* Edit Strategy Popup */}
       {editPopupOpen && (

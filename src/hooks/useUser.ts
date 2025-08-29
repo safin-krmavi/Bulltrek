@@ -10,13 +10,13 @@ export function useUser() {
   // Profile Data
   const profile = useQuery({
     queryKey: ["userProfile"],
-    queryFn: () => apiClient.get("/api/v1/users/profile")
+    queryFn: () => apiClient.get("/users/profile")
   });
 
   // Mutations
   const updateEmail = useMutation({
     mutationFn: (email: string) =>
-      apiClient.put("/api/v1/users/email", { email }),
+      apiClient.put("/users/email", { email }),
     onSuccess: () => {
       toast.success("Email updated");
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
@@ -28,7 +28,7 @@ export function useUser() {
 
   const connectApi = useMutation({
     mutationFn: (apiId: number) =>
-      apiClient.post("/api/v1/apis/connect", { apiId }),
+      apiClient.post("/apis/connect", { apiId }),
     onSuccess: () => {
       toast.success("API connected");
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
@@ -40,7 +40,7 @@ export function useUser() {
 
   const deletePlatform = useMutation({
     mutationFn: (platformId: number) =>
-      apiClient.delete(`/api/v1/platforms/${platformId}`),
+      apiClient.delete(`/platforms/${platformId}`),
     onSuccess: () => {
       toast.success("Platform deleted");
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });

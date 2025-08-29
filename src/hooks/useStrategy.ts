@@ -39,7 +39,7 @@ export function useStrategy() {
   const createStrategy = useMutation({
     mutationFn: async (data: CreateStrategyData) => {
       const response = await apiClient.post<StrategyResponse>(
-        `/api/v1/strategies`,
+        `/strategies`,
         data
       );
       return response.data;
@@ -51,7 +51,7 @@ export function useStrategy() {
 
   const updateStrategy = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<CreateStrategyData> }) => {
-      const response = await apiClient.put(`/api/v1/strategies/${id}`, data);
+      const response = await apiClient.put(`/strategies/${id}`, data);
       return response.data;
     },
     onSuccess: () => {
@@ -61,7 +61,7 @@ export function useStrategy() {
 
   const deleteStrategy = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiClient.delete(`/api/v1/strategies/${id}`);
+      const response = await apiClient.delete(`/strategies/${id}`);
       return response.data;
     },
     onSuccess: () => {

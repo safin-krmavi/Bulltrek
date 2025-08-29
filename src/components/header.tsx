@@ -9,7 +9,7 @@ const navDropdowns = [
   {
     label: "Trade",
     options: [
-      { label: "Trade", value: "/trade" },
+      { label: "Trade", value: "/strategy-builder" },
       { label: "Indy Lesi", value: "/indie-lesi" },
       { label: "Indy Trend", value: "/indie-trend" },
       { label: "Growth Dca", value: "/growth-dca" },
@@ -175,7 +175,7 @@ const ThemeToggleButton = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-full bg-muted shadow-md hover:scale-110 transition-transform"
+      className="p-2 rounded-full bg-muted hover:scale-110 transition-transform"
       aria-label="Toggle theme"
     >
       {theme === 'dark' ? (

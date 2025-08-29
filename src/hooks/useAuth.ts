@@ -1,5 +1,5 @@
 import apiClient from "@/api/apiClient";
-import { LoginResponse } from "@/api/auth";
+import { loginUser, registerUser } from "@/api/auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -18,46 +18,90 @@ export function useAuth() {
     localStorage.removeItem("user");
   };
 
+  // Login
   const login = useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
-      apiClient.post<LoginResponse>("/api/v1/auth", { 
-        username: email, 
-        password 
-      }),
+    mutationFn: async (payload: { email: string; password: string }) =>
+      loginUser(payload.email, payload.password),
     onSuccess: (response) => {
-      const { data } = response;
-      setAuthData(data.data.token, data.data.user);
+      const token = response.token;
+      const user = response.user;
+
+      if (!token) {
+        console.error("Login success but token missing:", response);
+        toast.error("Login response missing token");
+        return;
+      }
+
+      setAuthData(token, user);
       toast.success("Login successful");
       navigate("/dashboard");
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Login failed");
+      const serverMsg =
+        error?.response?.data?.message ??
+        error?.message ??
+        "Login failed";
+
+      // surface field validation if present (e.g., username/email)
+      const fieldMsg =
+        error?.response?.data?.message?.username?.[0] ??
+        error?.response?.data?.message?.email?.[0] ??
+        error?.response?.data?.message?.password?.[0];
+
+      toast.error(fieldMsg || serverMsg);
     }
   });
 
+  // Register
   const register = useMutation({
-    mutationFn: (userData: {
-      first_name: string;
-      last_name: string;
-      email: string;
-      mobile: string;
-      password: string;
-      password_confirmation: string;
-    }) => apiClient.post("/api/v1/signup", userData),
+    mutationFn: async (payload: any) => registerUser(payload),
     onSuccess: (response) => {
-      toast.success(response.data.message || "Registration successful");
+      const msg =
+        response?.data?.message ||
+        response?.message ||
+        "Registration successful";
+      toast.success(msg);
       navigate("/login");
     },
     onError: (error: any) => {
-      const errorMessage = error.response?.data?.message || "Registration failed";
-      if (error.response?.data?.errors) {
-        Object.values(error.response.data.errors).forEach((err: any) => {
-          toast.error(err[0]);
-        });
-      } else {
-        toast.error(errorMessage);
-      }
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Registration failed";
+      const errors = error?.response?.data?.errors;
+      if (errors) {
+        Object.values(errors).forEach((err: any) => toast.error(err[0]));
+      } else toast.error(errorMessage);
+    }
+  });
+
+  // Recover password (request reset link)
+  const recoverPassword = useMutation({
+    mutationFn: async (payload: { email: string }) => {
+      const { data } = await apiClient.post("/forgot-password", payload);
+      return data;
+    },
+    onSuccess: (response) => {
+      toast.success(response.data.message || "Recovery email sent");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to send recovery email");
+    }
+  });
+
+  // Reset password
+  const resetPassword = useMutation({
+    mutationFn: async (payload: any) => {
+      const { data } = await apiClient.post("/reset-password", payload);
+      return data;
+    },
+    onSuccess: (response) => {
+      toast.success(response.data.message || "Password reset successful");
+      navigate("/login");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Password reset failed");
     }
   });
 
@@ -68,5 +112,5 @@ export function useAuth() {
     toast.success("Logged out successfully");
   };
 
-  return { login, register, logout };
+  return { login, register, logout, recoverPassword, resetPassword };
 }

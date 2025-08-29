@@ -11,23 +11,23 @@ export interface TradeDirection {
 export const directionApi = {
   
   getAll: (): Promise<AxiosResponse<TradeDirection[]>> => 
-    apiClient.get('/api/v1/directions'),
+    apiClient.get('/directions'),
 
   
   create: (direction: string): Promise<AxiosResponse<TradeDirection>> =>
-    apiClient.post('/api/v1/directions', { direction }),
+    apiClient.post('/directions', { direction }),
 
  
   getById: (id: number): Promise<AxiosResponse<TradeDirection>> =>
-    apiClient.get(`/api/v1/directions/${id}`),
+    apiClient.get(`/directions/${id}`),
 
 
   update: (id: number, direction: string): Promise<AxiosResponse<TradeDirection>> =>
-    apiClient.put(`/api/v1/directions/${id}`, { direction }),
+    apiClient.put(`/directions/${id}`, { direction }),
 
   
   delete: (id: number): Promise<AxiosResponse<void>> =>
-    apiClient.delete(`/api/v1/directions/${id}`)
+    apiClient.delete(`/directions/${id}`)
 };
 
 //Quantities
@@ -38,19 +38,19 @@ export interface TradeQuantity {
   
   export const quantityApi = {
     getAll: (): Promise<AxiosResponse<TradeQuantity[]>> => 
-      apiClient.get('/api/v1/quantities'),
+      apiClient.get('/quantities'),
   
     create: (quantity: number): Promise<AxiosResponse<TradeQuantity>> =>
-      apiClient.post('/api/v1/quantities', { quantity }),
+      apiClient.post('/quantities', { quantity }),
   
     getById: (id: number): Promise<AxiosResponse<TradeQuantity>> =>
-      apiClient.get(`/api/v1/quantities/${id}`),
+      apiClient.get(`/quantities/${id}`),
   
     update: (id: number, quantity: number): Promise<AxiosResponse<TradeQuantity>> =>
-      apiClient.put(`/api/v1/quantities/${id}`, { quantity }),
+      apiClient.put(`/quantities/${id}`, { quantity }),
   
     delete: (id: number): Promise<AxiosResponse<void>> =>
-      apiClient.delete(`/api/v1/quantities/${id}`)
+      apiClient.delete(`/quantities/${id}`)
   };
 
 
@@ -62,19 +62,19 @@ export interface TradeAsset {
 
 export const assetApi = {
   getAll: (): Promise<AxiosResponse<TradeAsset[]>> => 
-    apiClient.get('/api/v1/assets'),
+    apiClient.get('/assets'),
 
   create: (symbol: string): Promise<AxiosResponse<TradeAsset>> =>
-    apiClient.post('/api/v1/assets', { symbol }),
+    apiClient.post('/assets', { symbol }),
 
   getById: (id: number): Promise<AxiosResponse<TradeAsset>> =>
-    apiClient.get(`/api/v1/assets/${id}`),
+    apiClient.get(`/assets/${id}`),
 
   update: (id: number, symbol: string): Promise<AxiosResponse<TradeAsset>> =>
-    apiClient.put(`/api/v1/assets/${id}`, { symbol }),
+    apiClient.put(`/assets/${id}`, { symbol }),
 
   delete: (id: number): Promise<AxiosResponse<void>> =>
-    apiClient.delete(`/api/v1/assets/${id}`)
+    apiClient.delete(`/assets/${id}`)
 };
 
 
@@ -88,19 +88,19 @@ export interface TradeIndicator {
   
   export const indicatorApi = {
     getAll: (): Promise<AxiosResponse<TradeIndicator[]>> => 
-      apiClient.get('/api/v1/indicators'),
+      apiClient.get('/indicators'),
   
     create: (name: string): Promise<AxiosResponse<TradeIndicator>> =>
-      apiClient.post('/api/v1/indicators', { name }),
+      apiClient.post('/indicators', { name }),
   
     getById: (id: number): Promise<AxiosResponse<TradeIndicator>> =>
-      apiClient.get(`/api/v1/indicators/${id}`),
+      apiClient.get(`/indicators/${id}`),
   
     update: (id: number, name: string): Promise<AxiosResponse<TradeIndicator>> =>
-      apiClient.put(`/api/v1/indicators/${id}`, { name }),
+      apiClient.put(`/indicators/${id}`, { name }),
   
     delete: (id: number): Promise<AxiosResponse<void>> =>
-      apiClient.delete(`/api/v1/indicators/${id}`)
+      apiClient.delete(`/indicators/${id}`)
   };
 
 
@@ -113,19 +113,19 @@ export interface TradeIndicator {
   
   export const indicatorActionApi = {
     getAll: (): Promise<AxiosResponse<IndicatorAction[]>> => 
-      apiClient.get('/api/v1/indicator-actions'),
+      apiClient.get('/indicator-actions'),
   
     create: (action: string): Promise<AxiosResponse<IndicatorAction>> =>
-      apiClient.post('/api/v1/indicator-actions', { action }),
+      apiClient.post('/indicator-actions', { action }),
   
     getById: (id: number): Promise<AxiosResponse<IndicatorAction>> =>
-      apiClient.get(`/api/v1/indicator-actions/${id}`),
+      apiClient.get(`/indicator-actions/${id}`),
   
     update: (id: number, action: string): Promise<AxiosResponse<IndicatorAction>> =>
-      apiClient.put(`/api/v1/indicator-actions/${id}`, { action }),
+      apiClient.put(`/indicator-actions/${id}`, { action }),
   
     delete: (id: number): Promise<AxiosResponse<void>> =>
-      apiClient.delete(`/api/v1/indicator-actions/${id}`)
+      apiClient.delete(`/indicator-actions/${id}`)
   };
 
   // Values
@@ -138,19 +138,19 @@ export interface IndicatorValue {
 
 export const valueApi = {
   getAll: (): Promise<AxiosResponse<IndicatorValue[]>> => 
-    apiClient.get('/api/v1/values'),
+    apiClient.get('/values'),
 
   create: (value: number): Promise<AxiosResponse<IndicatorValue>> =>
-    apiClient.post('/api/v1/values', { value }),
+    apiClient.post('/values', { value }),
 
   getById: (id: number): Promise<AxiosResponse<IndicatorValue>> =>
-    apiClient.get(`/api/v1/values/${id}`),
+    apiClient.get(`/values/${id}`),
 
   update: (id: number, value: number): Promise<AxiosResponse<IndicatorValue>> =>
-    apiClient.put(`/api/v1/values/${id}`, { value }),
+    apiClient.put(`/values/${id}`, { value }),
 
   delete: (id: number): Promise<AxiosResponse<void>> =>
-    apiClient.delete(`/api/v1/values/${id}`)
+    apiClient.delete(`/values/${id}`)
 };
 
 // Trade Mapping
@@ -168,17 +168,17 @@ export interface TradeMapping {
 
 export const tradeMappingApi = {
   getAll: (): Promise<AxiosResponse<TradeMapping[]>> => 
-    apiClient.get('/api/v1/trades'),
+    apiClient.get('/trades'),
 
   create: (mapping: Omit<TradeMapping, 'id'|'created_at'>): Promise<AxiosResponse<TradeMapping>> =>
-    apiClient.post('/api/v1/trades', mapping),
+    apiClient.post('/trades', mapping),
 
   getById: (id: number): Promise<AxiosResponse<TradeMapping>> =>
-    apiClient.get(`/api/v1/trades/${id}`),
+    apiClient.get(`/trades/${id}`),
 
   update: (id: number, mapping: Partial<TradeMapping>): Promise<AxiosResponse<TradeMapping>> =>
-    apiClient.put(`/api/v1/trades/${id}`, mapping),
+    apiClient.put(`/trades/${id}`, mapping),
 
   delete: (id: number): Promise<AxiosResponse<void>> =>
-    apiClient.delete(`/api/v1/trades/${id}`)
+    apiClient.delete(`/trades/${id}`)
 };

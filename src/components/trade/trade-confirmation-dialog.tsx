@@ -97,7 +97,7 @@ export function TradeConfirmationDialog({
   const handleRunBacktest = async () => {
     setIsBacktestSubmitting(true);
     try {
-      await apiClient.post("/api/v1/bots/1/backtest", {
+      await apiClient.post("/bots/1/backtest", {
         name: backtestForm.name,
         from: backtestForm.from,
         to: backtestForm.to,
@@ -136,7 +136,7 @@ export function TradeConfirmationDialog({
     setIsLoadingResults(true);
     try {
       const response = await apiClient.get<BacktestResultResponse>(
-        `/api/v1/bots/${selectedBot.id}/backtest-result`
+        `/bots/${selectedBot.id}/backtest-result`
       );
       
       setBacktestResults(response.data);
@@ -168,7 +168,7 @@ export function TradeConfirmationDialog({
     setIsPaperTrading(true);
     try {
       const response = await apiClient.post<PaperTradeResponse>(
-        `/api/v1/bots/${selectedBot.id}/paper/start`
+        `/bots/${selectedBot.id}/paper/start`
       );
       setPaperTradeMessage(response.data.message);
       setShowPaperTradeAlert(true);

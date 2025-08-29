@@ -1,43 +1,54 @@
-import axios from 'axios';
+import axios from "axios";
+
+const baseURL =
+  (import.meta as any)?.env?.VITE_API_BASE_URL?.replace(/\/+$/, "") ||
+  "http://newterminals.marketsverse.com/api/v1";
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL,
+  withCredentials: false,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
+    Accept: "application/json",
   },
 });
 
-// Request interceptor for adding auth token
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('AUTH_TOKEN');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  console.log('API Request:', {
-    url: config.url,
-    method: config.method,
-    headers: config.headers,
-  });
-  return config;
-});
+// Request interceptor: add auth header and normalize URL
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("AUTH_TOKEN");
+    if (token) {
+      config.headers = config.headers || {};
+      (config.headers as any).Authorization = `Bearer ${token}`;
+    }
 
-// Response interceptor for logging
+    if (config.url && !/^https?:\/\//i.test(config.url)) {
+      // Ensure it starts with a single slash
+      const path = config.url.startsWith("/") ? config.url : `/${config.url}`;
+      // Strip any duplicate /api/v1 prefix in the path
+      config.url = path.replace(/^\/+api\/v1(\/|$)/i, "/");
+    }
+
+    // Simple debug log
+    // console.log("API Request:", {
+    //   url: config.url,
+    //   method: config.method,
+    //   headers: config.headers,
+    // });
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 apiClient.interceptors.response.use(
-  (response) => {
-    console.log('API Response:', {
-      url: response.config.url,
-      status: response.status,
-      data: response.data,
-    });
-    return response;
-  },
+  (response) => response,
   (error) => {
-    console.error('API Error:', {
-      url: error.config?.url,
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
+    // console.error("API Error:", {
+    //   url: error?.config?.url,
+    //   status: error?.response?.status,
+    //   data: error?.response?.data,
+    //   message: error?.message,
+    // });
     return Promise.reject(error);
   }
 );

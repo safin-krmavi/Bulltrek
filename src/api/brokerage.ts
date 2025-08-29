@@ -60,33 +60,33 @@ export interface BrokerageConnection {
 //  Brokerage Master APIs 
 export const brokerageMaster = {
   getAll: (): Promise<AxiosResponse<BrokerageMaster[]>> => 
-    apiClient.get('/api/v1/brokerage'),
+    apiClient.get('/brokerage'),
 
   create: (data: FormData): Promise<AxiosResponse<BrokerageMaster>> =>
-    apiClient.post('/api/v1/brokerage', data),
+    apiClient.post('/brokerage', data),
 
   getById: (id: number): Promise<AxiosResponse<BrokerageMaster>> =>
-    apiClient.get(`/api/v1/brokerage/${id}`),
+    apiClient.get(`/brokerage/${id}`),
 
   update: (id: number, data: FormData): Promise<AxiosResponse<BrokerageMaster>> =>
-    apiClient.post(`/api/v1/brokerage/${id}`, data),
+    apiClient.post(`/brokerage/${id}`, data),
 
   delete: (id: number): Promise<AxiosResponse<void>> =>
-    apiClient.delete(`/api/v1/brokerage/${id}`)
+    apiClient.delete(`/brokerage/${id}`)
 };
 
 //  Zerodha APIs 
 export const zerodhaApi = {
   getBalance: (): Promise<AxiosResponse<BrokerageBalance>> => 
-    apiClient.get('/api/v1/brokerage/zerodha/balance'),
+    apiClient.get('/brokerage/zerodha/balance'),
 
   getTransactions: (symbol?: string): Promise<AxiosResponse<BrokerageTransaction[]>> => 
-    apiClient.get('/api/v1/brokerage/zerodha/transaction/history', {
+    apiClient.get('/brokerage/zerodha/transaction/history', {
       params: { symbol }
     }),
 
   getLiveOrders: (symbol?: string): Promise<AxiosResponse<BrokerageOrder[]>> => 
-    apiClient.get('/api/v1/brokerage/zerodha/orders/live', {
+    apiClient.get('/brokerage/zerodha/orders/live', {
       params: { symbol }
     }),
 
@@ -99,21 +99,21 @@ export const zerodhaApi = {
     product: string;
     validity: string;
   }): Promise<AxiosResponse<{ order_id: string }>> => 
-    apiClient.post('/api/v1/brokerage/zerodha/order/execute', orderData)
+    apiClient.post('/brokerage/zerodha/order/execute', orderData)
 };
 
 //  Binance APIs 
 export const binanceApi = {
   getBalance: (): Promise<AxiosResponse<BrokerageBalance>> => 
-    apiClient.get('/api/v1/brokerage/binance/balance'),
+    apiClient.get('/brokerage/binance/balance'),
 
   getTransactions: (symbol?: string): Promise<AxiosResponse<BrokerageTransaction[]>> => 
-    apiClient.get('/api/v1/brokerage/binance/transaction/history', {
+    apiClient.get('/brokerage/binance/transaction/history', {
       params: { symbol }
     }),
 
   getLiveOrders: (symbol?: string): Promise<AxiosResponse<BrokerageOrder[]>> => 
-    apiClient.get('/api/v1/brokerage/binance/orders/live', {
+    apiClient.get('/brokerage/binance/orders/live', {
       params: { symbol }
     }),
 
@@ -123,7 +123,7 @@ export const binanceApi = {
     type: 'MARKET' | 'LIMIT';
     quantity: number;
   }): Promise<AxiosResponse<{ order_id: string }>> => 
-    apiClient.post('/api/v1/brokerage/binance/order/execute', orderData)
+    apiClient.post('/brokerage/binance/order/execute', orderData)
 };
 
 //  Brokerage Management 
@@ -132,8 +132,8 @@ export const brokerageService = {
     brokerage_name: 'zerodha' | 'binance';
     brokerage_api_key: string;
     brokerage_api_secret: string;
-  }) => apiClient.put('/api/v1/users/1/brokerages/details/link', data),
+  }) => apiClient.put('/users/1/brokerages/details/link', data),
 
   getBrokerageDetails: () => 
-    apiClient.get('/api/v1/users/1/brokerages/details/fetch')
+    apiClient.get('/users/1/brokerages/details/fetch')
 };

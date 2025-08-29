@@ -11,12 +11,12 @@ import { formatCurrency } from '@/lib/utils'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { useUpdatePassword } from '@/hooks/useUpdatePassword'
 import { useBrokerageDetails } from '@/hooks/useBrokerageDetails'
-import { useBotManagement } from '@/hooks/useBotManagement'
+// import { useBotManagement } from '@/hooks/useBotManagement'
 import { Clock, Download, Edit, Plus, RefreshCw } from 'lucide-react'
 import { useResendInvite } from '@/hooks/sendinvite';
 import { useState} from 'react'
 import { toast } from 'sonner'
-import { format } from 'date-fns'
+// import { format } from 'date-fns'
 import { useDirections } from '@/hooks/useDirection'
 import { useQuantities } from '@/hooks/useQuantity'
 import { useAssets } from '@/hooks/useAsset'
@@ -24,21 +24,21 @@ import { useIndicators } from '@/hooks/useIndicator'
 import { PlatformDetails } from '../components/account/platformDetails';
 import { useIndicatorActions } from '@/hooks/useIndicatorAction'
 import { useIndicatorValues } from '@/hooks/useValue'
-import { useTransactionHistory } from '@/hooks/useTransactionHistory';
+// import { useTransactionHistory } from '@/hooks/useTransactionHistory';
 import { ApiConnect } from "@/components/account/ApiConnect";
 import { Eye, EyeOff } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+// import {
+//   AlertDialog,
+//   AlertDialogAction,
+//   AlertDialogCancel,
+//   AlertDialogContent,
+//   AlertDialogDescription,
+//   AlertDialogFooter,
+//   AlertDialogHeader,
+//   AlertDialogTitle,
+// } from "@/components/ui/alert-dialog";
 import { useNavigate } from 'react-router-dom';
-import { PaperTradingTables } from "../components/paperTrading/papertrading";
+// import { PaperTradingTables } from "../components/paperTrading/papertrading";
 
 // interface ApiResponse<T> {  
 //   status: string;
@@ -47,18 +47,18 @@ import { PaperTradingTables } from "../components/paperTrading/papertrading";
 //   code: number;
 // }
 
-interface Transaction {
-  id: string;
-  symbol: string;
-  orderId: string;
-  price: string;
-  qty: string;
-  quoteQty: string;
-  commission: string;
-  commissionAsset: string;
-  time: number;
-  isBuyer: boolean;
-}
+// interface Transaction {
+//   id: string;
+//   symbol: string;
+//   orderId: string;
+//   price: string;
+//   qty: string;
+//   quoteQty: string;
+//   commission: string;
+//   commissionAsset: string;
+//   time: number;
+//   isBuyer: boolean;
+// }
 
 // interface BinanceConnectionResponse {
 //   status: string;
@@ -99,19 +99,19 @@ interface Transaction {
 export default function AccountPage() {
   const navigate = useNavigate();
   // State declarations - move selectedSymbol here
-  const [selectedSymbol] = useState<string>("BTCUSDT");
+  // const [selectedSymbol] = useState<string>("BTCUSDT");
 
   // Hooks that depend on selectedSymbol
-  const { 
-    data: transactionData,
-    isLoading: isTransactionLoading,
-    error: transactionError
-  } = useTransactionHistory(selectedSymbol);
+  // const { 
+  //   data: transactionData,
+  //   isLoading: isTransactionLoading,
+  //   error: transactionError
+  // } = useTransactionHistory(selectedSymbol);
 
   // Other hooks
   const { data: profileData, isLoading: isProfileLoading, error: profileError } = useUserProfile();
   const { isLoading: isBrokerageLoading } = useBrokerageDetails();
-  const { createBot, updateBot } = useBotManagement();
+  // const { createBot, updateBot } = useBotManagement();
   const updatePassword = useUpdatePassword();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -134,9 +134,9 @@ export default function AccountPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showCreateBotModal, setShowCreateBotModal] = useState(false);
-  const [showEditBotModal, setShowEditBotModal] = useState(false);
-  const [selectedBot, setSelectedBot] = useState<any>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  // const [showEditBotModal, setShowEditBotModal] = useState(false);
+  // const [selectedBot, setSelectedBot] = useState<any>(null);
+  // const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [newBotData, setNewBotData] = useState<{
     name: string;
     strategy_id: number;
@@ -205,37 +205,37 @@ export default function AccountPage() {
     console.log(`Deleting platform ${platformId}`);
   };
 
-  const handleCreateBot = async () => {
-    try {
-      await createBot.mutateAsync(newBotData);
-      toast.success("Bot created successfully");
-      setShowCreateBotModal(false);
-      setNewBotData({
-        name: '',
-        strategy_id: 1,
-        mode: 'paper',
-        execution_type: 'manual',
-      });
-    } catch (error: any) {
-      toast.error("Failed to create bot", {
-        description: error.response?.data?.message || "Please try again",
-      });
-    }
-  };
+  // const handleCreateBot = async () => {
+  //   try {
+  //     await createBot.mutateAsync(newBotData);
+  //     toast.success("Bot created successfully");
+  //     setShowCreateBotModal(false);
+  //     setNewBotData({
+  //       name: '',
+  //       strategy_id: 1,
+  //       mode: 'paper',
+  //       execution_type: 'manual',
+  //     });
+  //   } catch (error: any) {
+  //     toast.error("Failed to create bot", {
+  //       description: error.response?.data?.message || "Please try again",
+  //     });
+  //   }
+  // };
   const resendInvite = useResendInvite();
 
-  const handleUpdateBot = async (id: number, data: any) => {
-    try {
-      await updateBot.mutateAsync({ id, data });
-      toast.success("Bot updated successfully");
-      setShowEditBotModal(false);
-      setSelectedBot(null);
-    } catch (error: any) {
-      toast.error("Failed to update bot", {
-        description: error.response?.data?.message || "Please try again",
-      });
-    }
-  };
+  // const handleUpdateBot = async (id: number, data: any) => {
+  //   try {
+  //     await updateBot.mutateAsync({ id, data });
+  //     toast.success("Bot updated successfully");
+  //     setShowEditBotModal(false);
+  //     setSelectedBot(null);
+  //   } catch (error: any) {
+  //     toast.error("Failed to update bot", {
+  //       description: error.response?.data?.message || "Please try again",
+  //     });
+  //   }
+  // };
   // Show loading state if any of the data is loading
   if (isLoading) {
     return (
@@ -262,9 +262,9 @@ export default function AccountPage() {
 
   const userData = profileData.data;
 
-  const transactions = Array.isArray(transactionData?.data) 
-    ? transactionData?.data 
-    : [];
+  // const transactions = Array.isArray(transactionData?.data) 
+  //   ? transactionData?.data 
+  //   : [];
 
   return (
     <div className="px-4 flex flex-col gap-4 mt-2">
@@ -686,13 +686,13 @@ export default function AccountPage() {
                 >
                   Cancel
                 </Button>
-                <Button
+                {/* <Button
                   className="bg-[#4A1C24] text-white hover:bg-[#3A161C]"
                   onClick={handleCreateBot}
                   disabled={createBot.isPending}
                 >
                   {createBot.isPending ? "Creating..." : "Create Bot"}
-                </Button>
+                </Button> */}
               </div>
             </div>
           </div>
@@ -700,192 +700,7 @@ export default function AccountPage() {
       )}
 
       {/* Edit Bot Modal */}
-      {showEditBotModal && selectedBot && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className=" dark:bg-[#232326] p-6 rounded-lg w-[500px]">
-            <h2 className="text-xl font-semibold mb-4">Edit Bot</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm text-muted-foreground">Bot Name</label>
-                <Input
-                  value={selectedBot.name}
-                  onChange={(e) => setSelectedBot({ ...selectedBot, name: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-muted-foreground">Mode</label>
-                <Select
-                  value={selectedBot.mode}
-                  onValueChange={(value) => setSelectedBot({ ...selectedBot, mode: value as 'paper' | 'live' })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="paper">Paper Trading</SelectItem>
-                    <SelectItem value="live">Live Trading</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm text-muted-foreground">Execution Type</label>
-                <Select
-                  value={selectedBot.execution_type}
-                  onValueChange={(value) => setSelectedBot({ ...selectedBot, execution_type: value as 'manual' | 'scheduled' })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="manual">Manual</SelectItem>
-                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {selectedBot.execution_type === 'scheduled' && (
-                <div>
-                  <label className="text-sm text-muted-foreground">Schedule Expression</label>
-                  <Input
-                    value={selectedBot.schedule_expression || ''}
-                    onChange={(e) => setSelectedBot({ ...selectedBot, schedule_expression: e.target.value })}
-                    className="mt-1"
-                    placeholder="*/15 * * * *"
-                  />
-                </div>
-              )}
-              <div className="flex justify-end gap-2 mt-6">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowEditBotModal(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="bg-[#4A1C24] text-white hover:bg-[#3A161C]"
-                  onClick={() => handleUpdateBot(selectedBot.id, selectedBot)}
-                  disabled={updateBot.isPending}
-                >
-                  {updateBot.isPending ? "Updating..." : "Update Bot"}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add the Alert Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className=" dark:bg-[#232326]">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the selected item.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setDeleteDialogOpen(false);
-              }}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <div className="grid grid-cols-5 w-full gap-4">
-       <CollapsibleCard title="Transaction History" className="col-span-5">
-          <div className="space-y-4">
-            {/* <div className="flex justify-end gap-2">
-              <Select
-                defaultValue="BTCUSDT"
-                onValueChange={(value) => setSelectedSymbol(value)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select symbol" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="BTCUSDT">BTCUSDT</SelectItem>
-                  <SelectItem value="ETHUSDT">ETHUSDT</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-             */}
-            <div className="max-h-[400px] overflow-y-auto">
-              <Table>
-                <TableHeader className="dark:text-white">
-                  <TableRow>
-                    <TableHead>Symbol</TableHead>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Commission</TableHead>
-                    <TableHead>Time</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                        {isTransactionLoading ? (
-                          <TableRow>
-                            <TableCell colSpan={8} className="text-center py-4">
-                              Loading transactions...
-                            </TableCell>
-                          </TableRow>
-                        ) : transactionError ? (
-                          <TableRow>
-                            <TableCell colSpan={8} className="text-center py-4 text-red-500">
-                              Transactio data not found
-                            </TableCell>
-                          </TableRow>
-                        ) : !transactions || transactions.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={8} className="text-center py-4">
-                              No transactions found
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          transactions.map((transaction: Transaction) => (
-                            <TableRow key={transaction.id}>
-                              <TableCell>{transaction.symbol}</TableCell>
-                              <TableCell>{transaction.orderId}</TableCell>
-                              <TableCell>{parseFloat(transaction.price).toFixed(2)}</TableCell>
-                              <TableCell>{parseFloat(transaction.qty).toFixed(8)}</TableCell>
-                              <TableCell>{parseFloat(transaction.quoteQty).toFixed(2)}</TableCell>
-                              <TableCell>
-                                <Badge
-                                  variant={transaction.isBuyer ? "success" : "destructive"}
-                                >
-                                  {transaction.isBuyer ? "Buy" : "Sell"}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                {`${parseFloat(transaction.commission).toFixed(8)} ${transaction.commissionAsset}`}
-                              </TableCell>
-                              <TableCell>
-                                {format(new Date(transaction.time), 'dd MMM yyyy HH:mm:ss')}
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                    </TableBody>
-              </Table>
-            </div>
-          </div>
-        </CollapsibleCard>
-      </div>
-
-      <div className="grid grid-cols-5 w-full gap-4">
-        <CollapsibleCard title="Paper Trading" className="col-span-5">
-          <div className="space-y-4">
-            <PaperTradingTables botId={1} /> {/* Pass the correct bot ID */}
-          </div>
-        </CollapsibleCard>
-      </div>
+     
     </div>
   )
 }
