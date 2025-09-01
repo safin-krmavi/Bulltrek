@@ -9,13 +9,14 @@ const navDropdowns = [
   {
     label: "Trade",
     options: [
-      { label: "Trade", value: "/strategy-builder" },
-      { label: "Indy Lesi", value: "/indie-lesi" },
-      { label: "Indy Trend", value: "/indie-trend" },
-      { label: "Growth Dca", value: "/growth-dca" },
-      { label: "Price Action", value: "/price-action" },
-      { label: "Human Grid", value: "/human-grid" },
-      { label: "Smart Grid", value: "/smart-grid" },
+  { label: "Trade", value: "/strategy-builder" },
+  { label: "Indy Lesi", value: "/indie-lesi" },
+  { label: "Indy Trend", value: "/indie-trend" },
+  { label: "Indy UTC", value: "/indy-utc" },
+  { label: "Growth Dca", value: "/growth-dca" },
+  { label: "Price Action", value: "/price-action" },
+  { label: "Human Grid", value: "/human-grid" },
+  { label: "Smart Grid", value: "/smart-grid" },
     ],
   },
   {
