@@ -60,7 +60,7 @@ export async function registerUser(data: {
   password_confirmation: string;
 }): Promise<any> {
   try {
-    const res = await apiClient.post('/register', data);
+    const res = await apiClient.post('/signup', data);
     return res.data;
   } catch (error: any) {
     const msg =
