@@ -88,17 +88,16 @@ const RegisterPage = () => {
                 msg.toLowerCase().includes("email exists"))
           );
 
+      // Improved error display: show all error messages from API
       if (isDuplicate) {
-        toast.error(
-          "User already exists. Please login or use a different email/mobile."
-        );
+        toast.error("User already exists. Please login or use a different email/mobile.");
       } else if (typeof message === "string") {
         toast.error(message);
       } else if (typeof message === "object") {
-        // Show first error message from object
-        const firstMsg = Object.values(message).flat()[0];
-        if (typeof firstMsg === "string") {
-          toast.error(firstMsg);
+        // Show all error messages from object
+        const allMsgs = Object.values(message).flat().filter((msg) => typeof msg === "string");
+        if (allMsgs.length > 0) {
+          allMsgs.forEach((msg) => toast.error(msg));
         } else {
           toast.error("Registration failed. Please try again.");
         }
