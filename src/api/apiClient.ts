@@ -2,7 +2,7 @@ import axios from "axios";
 
 const baseURL =
   (import.meta as any)?.env?.VITE_API_BASE_URL?.replace(/\/+$/, "") ||
-  "http://newterminals.marketsverse.com/api/v1";
+  "https://newterminals.marketsverse.com/api/v1";
 
 const apiClient = axios.create({
   baseURL,

@@ -144,7 +144,15 @@ export default function HumanGrid() {
         isBrokeragesLoading={isBrokeragesLoading}
         brokerages={brokerages}
       />
+      <AccountDetailsCard
+        selectedApi={selectedApi}
+        setSelectedApi={setSelectedApi}
+        isBrokeragesLoading={isBrokeragesLoading}
+        brokerages={brokerages}
+      />
       <form className="space-y-4 mt-4 dark:text-white">
+        {error && <div className="text-red-500 text-sm">{error}</div>}
+        {success && <div className="text-green-500 text-sm">{success}</div>}
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CollapsibleTrigger className="flex w-full items-center justify-between rounded-t-md bg-[#4A1515] p-4 font-medium text-white hover:bg-[#5A2525]">
             <span>Human Grid</span>
@@ -244,8 +252,6 @@ export default function HumanGrid() {
                 <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
               </div>
             </div>
-
-            <p className="text-sm text-green-500">Estimated Net PnL of trade: + 88 Value</p>
           </CollapsibleContent>
         </Collapsible>
 
