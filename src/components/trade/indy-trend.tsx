@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from "react"
+import { ProceedPopup } from "@/components/dashboard/proceed-popup"
 import { ChevronDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +17,7 @@ import { useEffect } from "react"
 import { brokerageService } from "@/api/brokerage"
 
 export default function IndyTrend() {
+  const [showProceedPopup, setShowProceedPopup] = React.useState(false);
   const [isIndyOpen, setIsIndyOpen] = React.useState(true)
   const [isAdvancedOpen, setIsAdvancedOpen] = React.useState(false)
   const [selectedApi, setSelectedApi] = React.useState("")
@@ -129,6 +131,7 @@ export default function IndyTrend() {
         throw new Error(err.message || "Failed to create Indy Trend strategy.");
       }
       setSuccess("Indy Trend strategy created successfully.");
+      setShowProceedPopup(true);
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
     } finally {
@@ -158,6 +161,16 @@ export default function IndyTrend() {
 
   return (
     <div className="w-full max-w-md mx-auto">
+      {showProceedPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-4">
+            <ProceedPopup variant="extended" />
+            <button className="mt-4 w-full bg-gray-200 py-2 rounded" onClick={() => setShowProceedPopup(false)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
       <AccountDetailsCard
         selectedApi={selectedApi}
         setSelectedApi={setSelectedApi}

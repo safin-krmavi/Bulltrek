@@ -10,6 +10,8 @@ interface AccountDetailsCardProps {
   setSelectedApi: (api: string) => void;
   isBrokeragesLoading: boolean;
   brokerages: any[];
+  segment?: string;
+  setSegment?: (segment: string) => void;
   title?: string;
 }
 
@@ -18,6 +20,8 @@ export const AccountDetailsCard: React.FC<AccountDetailsCardProps> = ({
   setSelectedApi,
   isBrokeragesLoading,
   brokerages,
+  segment,
+  setSegment,
   title = "Account Details",
 }) => {
   const [open, setOpen] = React.useState(true);
@@ -58,6 +62,22 @@ export const AccountDetailsCard: React.FC<AccountDetailsCardProps> = ({
               </SelectContent>
             </Select>
           </div>
+          {/* Segment input below API Key */}
+          {typeof segment !== 'undefined' && typeof setSegment === 'function' && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Segment</label>
+              <Select value={segment} onValueChange={setSegment}>
+                <SelectTrigger className="w-full bg-background border border-border rounded">
+                  <SelectValue placeholder="Select Segment" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Delivery/Spot/Cash">Delivery/Spot/Cash</SelectItem>
+                  <SelectItem value="Futures">Futures</SelectItem>
+                  <SelectItem value="Options">Options</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </CardContent>
       </div>
     </Card>

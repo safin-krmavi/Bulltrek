@@ -132,8 +132,12 @@ export const brokerageService = {
     brokerage_name: 'zerodha' | 'binance';
     brokerage_api_key: string;
     brokerage_api_secret: string;
-  }) => apiClient.put('/users/1/brokerages/details/link', data),
+  }) => apiClient.put('/users/{id}/brokerages/details/link', data),
 
   getBrokerageDetails: () => 
-    apiClient.get('/users/1/brokerages/details/fetch')
+    apiClient.get('/users/{id}/brokerages/details/fetch')
+};
+// API Connections endpoint for dashboard API Connect card
+export const apiConnections = {
+  getAll: () => apiClient.get('/brokerage/api-connections'),
 };

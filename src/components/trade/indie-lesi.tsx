@@ -11,10 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 // import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 // import { cn } from "@/lib/utils"
 import { useEffect } from "react"
+import { useUserProfile } from "@/hooks/useUserProfile"
 import { AccountDetailsCard } from "@/components/trade/AccountDetailsCard"
 import { brokerageService } from "@/api/brokerage"
 
 export default function IndyLESI() {
+  const { data: profileData,} = useUserProfile();
+  const userId = profileData?.data?.id;
   const [isOpen, setIsOpen] = React.useState(true)
   const [isAdvancedOpen, setIsAdvancedOpen] = React.useState(false)
   const [selectedApi, setSelectedApi] = React.useState("")
@@ -67,6 +70,10 @@ export default function IndyLESI() {
       setError("Please fill all required fields.");
       return;
     }
+    if (!userId) {
+      setError("User ID not found. Please make sure you are logged in.");
+      return;
+    }
     setLoading(true);
     try {
       // Robust token retrieval: try all common keys, prioritize AUTH_TOKEN
@@ -86,6 +93,7 @@ export default function IndyLESI() {
       console.log("[IndyLESI] API URL:", baseUrl + "/strategies");
       console.log("[IndyLESI] Access token:", accessToken);
       const body = {
+        user_id: userId,
         strategy_name: strategyName,
         strategy_type: "indy_lesi",
         api_connection_id: Number(selectedApi),
