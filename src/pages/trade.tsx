@@ -22,7 +22,7 @@ import { useBotManagement } from "@/hooks/useBotManagement";
 import { format } from "date-fns";
 import { BrokerageConnection, brokerageService } from "@/api/brokerage";
 import { useTheme } from "@/App";
-import IndyUTC from "@/components/trade/indy-UTC";
+import IndyUTC from "@/components/trade/indy-utc";
 
 export default function TradePage() {
   const [sections, setSections] = useState({
