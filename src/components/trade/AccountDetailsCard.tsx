@@ -12,6 +12,8 @@ interface AccountDetailsCardProps {
   brokerages: any[];
   segment?: string;
   setSegment?: (segment: string) => void;
+  pair?: string;
+  setPair?: (pair: string) => void;
   title?: string;
 }
 
@@ -22,6 +24,8 @@ export const AccountDetailsCard: React.FC<AccountDetailsCardProps> = ({
   brokerages,
   segment,
   setSegment,
+  pair,
+  setPair,
   title = "Account Details",
 }) => {
   const [open, setOpen] = React.useState(true);
@@ -35,7 +39,7 @@ export const AccountDetailsCard: React.FC<AccountDetailsCardProps> = ({
         <CardTitle className="text-base font-medium">{title}</CardTitle>
         {open ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
       </CardHeader>
-      <div className={cn("transition-all duration-200", open ? "block" : "hidden")}>
+      <div className={cn("transition-all duration-200", open ? "block" : "hidden")}> 
         <CardContent className="p-4 pt-0 space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">API Key</label>
@@ -76,6 +80,19 @@ export const AccountDetailsCard: React.FC<AccountDetailsCardProps> = ({
                   <SelectItem value="Options">Options</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          )}
+          {/* Pair input below Segment */}
+          {typeof pair !== 'undefined' && typeof setPair === 'function' && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Pair</label>
+              <input
+                type="text"
+                className="w-full bg-background border border-border rounded px-3 py-2 text-sm"
+                placeholder="e.g. BTCUSDT"
+                value={pair}
+                onChange={e => setPair(e.target.value)}
+              />
             </div>
           )}
         </CardContent>

@@ -1,4 +1,5 @@
 'use client'
+
 import * as React from "react"
 import { ChevronDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
@@ -10,19 +11,18 @@ import { TradeConfirmationDialog } from "@/components/trade/trade-confirmation-d
 import { useBotManagement } from "@/hooks/useBotManagement"
 import { useEffect, useState } from "react"
 import { BrokerageConnection, brokerageService } from "@/api/brokerage"
+// import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { AccountDetailsCard } from "./AccountDetailsCard"
-import { ProceedPopup } from "@/components/dashboard/proceed-popup"
 
 export default function GrowthDCA() {
-  const [showProceedPopup, setShowProceedPopup] = useState(false);
   const [isOpen, setIsOpen] = React.useState(true)
   const [isAdvancedOpen, setIsAdvancedOpen] = React.useState(false)
 
   // Dialog and selection state
-  const [selectedApi, setSelectedApi] = useState("")
-  const [showConfirmation, setShowConfirmation] = useState(false)
-  const [brokerages, setBrokerages] = useState<BrokerageConnection[]>([])
-  const [isBrokeragesLoading, setIsBrokeragesLoading] = useState(true)
+  const [selectedApi, setSelectedApi] = useState("");
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [brokerages, setBrokerages] = useState<BrokerageConnection[]>([]);
+  const [isBrokeragesLoading, setIsBrokeragesLoading] = useState(true);
 
   // Form state
   const [strategyName, setStrategyName] = useState("");
@@ -33,10 +33,9 @@ export default function GrowthDCA() {
   const [duration, setDuration] = useState("");
   const [segment, setSegment] = useState("Delivery/Spot/Cash");
   const [bookProfitBy, setBookProfitBy] = useState("");
-  const [bookProfitMethod, setBookProfitMethod] = useState("percentage");
-  const [priceTriggerStart, setPriceTriggerStart] = useState("45000");
-  const [priceTriggerStop, setPriceTriggerStop] = useState("70000");
-  const [stopLossBy, setStopLossBy] = useState("10");
+  const [priceTriggerStart, setPriceTriggerStart] = useState("");
+  const [priceTriggerStop, setPriceTriggerStop] = useState("");
+  const [stopLossBy, setStopLossBy] = useState("");
   // Schedule fields
   const [scheduleType, setScheduleType] = useState("weekly");
   const [selectedDays, setSelectedDays] = useState<string[]>(["Monday", "Wednesday", "Friday"]);
@@ -46,45 +45,31 @@ export default function GrowthDCA() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [missingFields, setMissingFields] = useState<string[]>([]);
 
-  const { } = useBotManagement()
+  const { } = useBotManagement();
 
   useEffect(() => {
     async function fetchBrokerages() {
-      setIsBrokeragesLoading(true)
+      setIsBrokeragesLoading(true);
       try {
-        const res = await brokerageService.getBrokerageDetails()
-        setBrokerages(res.data.data || [])
+        const res = await brokerageService.getBrokerageDetails();
+        setBrokerages(res.data.data || []);
       } catch {
-        setBrokerages([])
+        setBrokerages([]);
       } finally {
-        setIsBrokeragesLoading(false)
+        setIsBrokeragesLoading(false);
       }
     }
-    fetchBrokerages()
-  }, [])
+    fetchBrokerages();
+  }, []);
 
   // API call handler
   const handleProceed = async (e: React.MouseEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    setMissingFields([]);
-    // Improved validation: check for empty strings and allow zero values for numbers
-    const missing: string[] = [];
-    if (!selectedApi) missing.push("API Connection");
-    if (strategyName.trim() === "") missing.push("Strategy Name");
-    if (pair.trim() === "") missing.push("Pair");
-    if (investmentAmount.trim() === "" || isNaN(Number(investmentAmount)) || Number(investmentAmount) <= 0) missing.push("Investment Amount");
-    if (investmentCap.trim() === "" || isNaN(Number(investmentCap)) || Number(investmentCap) <= 0) missing.push("Investment CAP");
-    if (duration.trim() === "") missing.push("Duration");
-    if (bookProfitBy.trim() === "" || isNaN(Number(bookProfitBy)) || Number(bookProfitBy) <= 0) missing.push("Book Profit By (%)");
-    if (priceTriggerStart.trim() === "" || isNaN(Number(priceTriggerStart)) || Number(priceTriggerStart) <= 0) missing.push("Price Trigger Start");
-    if (priceTriggerStop.trim() === "" || isNaN(Number(priceTriggerStop)) || Number(priceTriggerStop) <= 0) missing.push("Price Trigger Stop");
-    if (stopLossBy.trim() === "" || isNaN(Number(stopLossBy)) || Number(stopLossBy) <= 0) missing.push("Stop Loss By (%)");
-    if (missing.length > 0) {
-      setMissingFields(missing);
+    // Basic validation
+    if (!selectedApi || !strategyName || !pair || !investmentAmount || !investmentCap || !duration || !bookProfitBy || !priceTriggerStart || !priceTriggerStop || !stopLossBy) {
       setError("Please fill all required fields.");
       return;
     }
@@ -114,8 +99,7 @@ export default function GrowthDCA() {
         investment_cap: Number(investmentCap),
         duration,
         book_profit_by: {
-          percentage: Number(bookProfitBy),
-          method: bookProfitMethod
+          percentage: Number(bookProfitBy)
         },
         advanced_settings: {
           price_trigger_start: Number(priceTriggerStart),
@@ -143,8 +127,8 @@ export default function GrowthDCA() {
         const err = await res.json();
         throw new Error(err.message || "Failed to create Growth DCA strategy.");
       }
-  setSuccess("Growth DCA strategy created successfully.");
-  setShowProceedPopup(true);
+      setSuccess("Growth DCA strategy created successfully.");
+      setShowConfirmation(true);
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
     } finally {
@@ -152,29 +136,8 @@ export default function GrowthDCA() {
     }
   };
 
-  const handleReset = () => {
-    setStrategyName("");
-    setPair("BTCUSDT");
-    setInvestmentAmount("");
-    setInvestmentCurrency("USTD");
-    setInvestmentCap("");
-    setDuration("");
-    setSegment("Delivery/Spot/Cash");
-    setBookProfitBy("");
-    setBookProfitMethod("percentage");
-  setPriceTriggerStart("45000");
-  setPriceTriggerStop("70000");
-  setStopLossBy("10");
-    setScheduleType("weekly");
-    setSelectedDays(["Monday", "Wednesday", "Friday"]);
-    setRepeatTime("14:30");
-    setTimezone("UTC");
-    setError("");
-    setSuccess("");
-  };
-
   return (
-  <div className="w-full max-w-md mx-auto">
+    <div className="w-full max-w-md mx-auto">
       <AccountDetailsCard
         selectedApi={selectedApi}
         setSelectedApi={setSelectedApi}
@@ -182,6 +145,8 @@ export default function GrowthDCA() {
         brokerages={brokerages}
         segment={segment}
         setSegment={setSegment}
+        pair={pair}
+        setPair={setPair}
       />
       <form className="space-y-4 mt-4 dark:text-white">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -195,37 +160,16 @@ export default function GrowthDCA() {
                 Strategy Name
                 <span className="text-muted-foreground">ⓘ</span>
               </Label>
-              <Input
-                placeholder="Enter Name"
-                value={strategyName}
-                onChange={e => setStrategyName(e.target.value)}
-                className={(!strategyName && error) ? "border-red-500" : ""}
-              />
+              <Input placeholder="Enter Name" value={strategyName} onChange={e => setStrategyName(e.target.value)} />
             </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                Pair
-                <span className="text-muted-foreground">ⓘ</span>
-              </Label>
-              <Input
-                placeholder="e.g. BTCUSDT"
-                value={pair}
-                onChange={e => setPair(e.target.value)}
-                className={(!pair && error) ? "border-red-500" : ""}
-              />
-            </div>
+
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Investment
                 <span className="text-muted-foreground">ⓘ</span>
               </Label>
               <div className="flex gap-2">
-                <Input
-                  placeholder="Value"
-                  value={investmentAmount}
-                  onChange={e => setInvestmentAmount(e.target.value)}
-                  className={(!investmentAmount && error) ? "border-red-500" : ""}
-                />
+                <Input placeholder="Value" value={investmentAmount} onChange={e => setInvestmentAmount(e.target.value)} />
                 <Select value={investmentCurrency} onValueChange={setInvestmentCurrency}>
                   <SelectTrigger className="w-[100px]">
                     <SelectValue />
@@ -237,20 +181,25 @@ export default function GrowthDCA() {
               </div>
               <p className="text-sm text-orange-500">Avbl: 389 USTD</p>
             </div>
+
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Investment CAP
                 <span className="text-muted-foreground">ⓘ</span>
               </Label>
               <div className="flex gap-2">
-                <Input
-                  placeholder="Value"
-                  value={investmentCap}
-                  onChange={e => setInvestmentCap(e.target.value)}
-                  className={(!investmentCap && error) ? "border-red-500" : ""}
-                />
+                <Input placeholder="Value" value={investmentCap} onChange={e => setInvestmentCap(e.target.value)} />
+                <Select value={investmentCurrency} onValueChange={setInvestmentCurrency}>
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USTD">USTD</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Duration
@@ -268,27 +217,22 @@ export default function GrowthDCA() {
                 </SelectContent>
               </Select>
             </div>
+
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                Book Profit By (%)
+                Book Profit By
                 <span className="text-muted-foreground">ⓘ</span>
               </Label>
-              <Input
-                type="number"
-                placeholder="Percentage"
-                value={bookProfitBy}
-                onChange={e => setBookProfitBy(e.target.value)}
-                className={(!bookProfitBy && error) ? "border-red-500" : ""}
-              />
-              <Select value={bookProfitMethod} onValueChange={setBookProfitMethod}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="percentage">Percentage</SelectItem>
-                  <SelectItem value="fixed">Fixed</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="relative">
+                <Input
+                  type="number"
+                  placeholder="Percentage"
+                  value={bookProfitBy}
+                  onChange={e => setBookProfitBy(e.target.value)}
+                  className="pr-10"
+                />
+                <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
+              </div>
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -299,46 +243,48 @@ export default function GrowthDCA() {
             <ChevronDown className={`h-4 w-4 transition-transform ${isAdvancedOpen ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-4 rounded-b-md border border-t-0 p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="priceTriggerStart">Price Trigger Start</Label>
-                <Input
-                  id="priceTriggerStart"
-                  type="number"
-                  placeholder="e.g. 45000"
-                  value={priceTriggerStart}
-                  onChange={e => setPriceTriggerStart(e.target.value)}
-                  className={(!priceTriggerStart && error) ? "border-red-500" : ""}
-                />
+                <div className="flex gap-2">
+                  <Input id="priceTriggerStart" type="number" placeholder="Value" value={priceTriggerStart} onChange={e => setPriceTriggerStart(e.target.value)} className="flex-1" />
+                  <Select value={investmentCurrency} onValueChange={setInvestmentCurrency}>
+                    <SelectTrigger className="w-[80px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USTD">USTD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="priceTriggerStop">Price Trigger Stop</Label>
-                <Input
-                  id="priceTriggerStop"
-                  type="number"
-                  placeholder="e.g. 70000"
-                  value={priceTriggerStop}
-                  onChange={e => setPriceTriggerStop(e.target.value)}
-                  className={(!priceTriggerStop && error) ? "border-red-500" : ""}
-                />
+                <div className="flex gap-2">
+                  <Input id="priceTriggerStop" type="number" placeholder="Value" value={priceTriggerStop} onChange={e => setPriceTriggerStop(e.target.value)} className="flex-1" />
+                  <Select value={investmentCurrency} onValueChange={setInvestmentCurrency}>
+                    <SelectTrigger className="w-[80px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USTD">USTD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="stopLossBy">Stop Loss By (%)</Label>
-                <Input
-                  id="stopLossBy"
-                  type="number"
-                  placeholder="e.g. 10"
-                  value={stopLossBy}
-                  onChange={e => setStopLossBy(e.target.value)}
-                  className={(!stopLossBy && error) ? "border-red-500" : ""}
-                />
+              <div className="space-y-2">
+                <Label htmlFor="stopLossBy">Stop Loss By</Label>
+                <div className="relative">
+                  <Input id="stopLossBy" type="number" placeholder="Value" value={stopLossBy} onChange={e => setStopLossBy(e.target.value)} className="pr-10" />
+                  <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
+                </div>
               </div>
             </div>
           </CollapsibleContent>
         </Collapsible>
 
         {/* Schedule Section */}
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <Label className="flex items-center gap-2">
             Schedule Type
             <span className="text-muted-foreground">ⓘ</span>
@@ -386,18 +332,8 @@ export default function GrowthDCA() {
             <span className="text-muted-foreground">ⓘ</span>
           </Label>
           <Input placeholder="e.g. UTC" value={timezone} onChange={e => setTimezone(e.target.value)} />
-        </div>
+        </div> */}
 
-        {missingFields.length > 0 && (
-          <div className="text-red-500 text-sm">
-            <div className="font-semibold">Missing Fields:</div>
-            <ul className="list-disc ml-5">
-              {missingFields.map(field => (
-                <li key={field}>{field}</li>
-              ))}
-            </ul>
-          </div>
-        )}
         {error && <div className="text-red-500 text-sm">{error}</div>}
         {success && <div className="text-green-500 text-sm">{success}</div>}
 
@@ -409,7 +345,25 @@ export default function GrowthDCA() {
           >
             {loading ? "Processing..." : "Proceed"}
           </Button>
-          <Button variant="outline" className="flex-1 bg-[#D97706] text-white hover:bg-[#B45309]" type="button" onClick={handleReset}>
+          <Button variant="outline" className="flex-1 bg-[#D97706] text-white hover:bg-[#B45309]" type="button" onClick={() => {
+            setStrategyName("");
+            setPair("BTCUSDT");
+            setInvestmentAmount("");
+            setInvestmentCurrency("USTD");
+            setInvestmentCap("");
+            setDuration("");
+            setSegment("Delivery/Spot/Cash");
+            setBookProfitBy("");
+            setPriceTriggerStart("");
+            setPriceTriggerStop("");
+            setStopLossBy("");
+            setScheduleType("weekly");
+            setSelectedDays(["Monday", "Wednesday", "Friday"]);
+            setRepeatTime("14:30");
+            setTimezone("UTC");
+            setError("");
+            setSuccess("");
+          }}>
             Reset
           </Button>
         </div>
@@ -420,34 +374,6 @@ export default function GrowthDCA() {
         selectedApi={selectedApi}
         selectedBot={null}
       />
-      {showProceedPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="flex items-center justify-center w-full h-full">
-            <div className="bg-white rounded-lg shadow-lg p-0 max-h-[90vh] overflow-y-auto mx-auto my-auto">
-              <ProceedPopup
-                variant="extended"
-                strategyData={{
-                  accountDetails: {
-                    API: selectedApi,
-                    Segment: segment,
-                    Pair: pair,
-                    InvestmentAmount: investmentAmount,
-                    InvestmentCurrency: investmentCurrency,
-                    InvestmentCap: investmentCap,
-                    Duration: duration
-                  },
-                  advancedSettings: {
-                    PriceTriggerStart: priceTriggerStart,
-                    PriceTriggerStop: priceTriggerStop,
-                    StopLossBy: stopLossBy
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
-

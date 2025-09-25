@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from "react"
-import { ProceedPopup } from "@/components/dashboard/proceed-popup"
 import { ChevronDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,35 +16,12 @@ import { useEffect } from "react"
 import { brokerageService } from "@/api/brokerage"
 
 export default function IndyTrend() {
-  const [showProceedPopup, setShowProceedPopup] = React.useState(false);
   const [isIndyOpen, setIsIndyOpen] = React.useState(true)
   const [isAdvancedOpen, setIsAdvancedOpen] = React.useState(false)
+  // const [accountDetailsOpen, setAccountDetailsOpen] = React.useState(true)
   const [selectedApi, setSelectedApi] = React.useState("")
   const [isBrokeragesLoading, setIsBrokeragesLoading] = React.useState(false)
   const [brokerages, setBrokerages] = React.useState([])
-
-  // Form state
-  const [strategyName, setStrategyName] = React.useState("");
-  const [investment, setInvestment] = React.useState("");
-  const [investmentCap, setInvestmentCap] = React.useState("");
-  const [timeFrame, setTimeFrame] = React.useState("5m");
-  const [leverage, setLeverage] = React.useState("");
-  const [lowerLimit, setLowerLimit] = React.useState("");
-  const [upperLimit, setUpperLimit] = React.useState("");
-  const [priceTriggerStart, setPriceTriggerStart] = React.useState("");
-  const [priceTriggerStop, setPriceTriggerStop] = React.useState("");
-  const [stopLossBy, setStopLossBy] = React.useState("");
-  // Indicators
-  const [indicators, setIndicators] = React.useState<string[]>([]);
-  // Trend settings
-  const [signalStrength, setSignalStrength] = React.useState("medium");
-  const [confirmationRequired, setConfirmationRequired] = React.useState(true);
-  const [minSignalsForBuy, setMinSignalsForBuy] = React.useState("2");
-  const [minSignalsForSell, setMinSignalsForSell] = React.useState("1");
-  // Feedback
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState("");
-  const [success, setSuccess] = React.useState("");
 
   useEffect(() => {
     async function fetchBrokerages() {
@@ -62,121 +38,14 @@ export default function IndyTrend() {
     fetchBrokerages()
   }, [])
 
-  // Indicator checkbox handler
-  const handleIndicatorChange = (indicator: string) => {
-    setIndicators(prev => prev.includes(indicator) ? prev.filter(i => i !== indicator) : [...prev, indicator]);
-  };
-
-  // API call handler
-  const handleProceed = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    if (!selectedApi || !strategyName || !investment || !investmentCap || !leverage || !lowerLimit || !upperLimit || !priceTriggerStart || !priceTriggerStop || !stopLossBy) {
-      setError("Please fill all required fields.");
-      return;
-    }
-    setLoading(true);
-    try {
-      // Robust token retrieval: try all common keys, prioritize AUTH_TOKEN
-      let accessToken = localStorage.getItem("AUTH_TOKEN") || localStorage.getItem("access_token") || localStorage.getItem("token");
-      if (!accessToken || typeof accessToken !== "string" || accessToken.trim() === "") {
-        setError("You are not logged in or token is missing. Please log in again.");
-        setLoading(false);
-        return;
-      }
-      accessToken = accessToken.trim();
-      const baseUrl = import.meta.env.VITE_API_URL || "";
-      if (!baseUrl) {
-        setError("API base URL is not set. Please check your environment variables.");
-        setLoading(false);
-        return;
-      }
-      console.log("[IndyTrend] API URL:", baseUrl + "/strategies");
-      console.log("[IndyTrend] Access token:", accessToken);
-      const body = {
-        strategy_name: strategyName,
-        strategy_type: "indy_trend",
-        api_connection_id: Number(selectedApi),
-        segment: "spot",
-        pair: "BTCUSDT",
-        investment: Number(investment),
-        investment_cap: Number(investmentCap),
-        time_frame: timeFrame,
-        leverage: Number(leverage),
-        lower_limit: Number(lowerLimit),
-        upper_limit: Number(upperLimit),
-        price_trigger_start: Number(priceTriggerStart),
-        price_trigger_stop: Number(priceTriggerStop),
-        stop_loss_by: Number(stopLossBy),
-        indicators,
-        trend_settings: {
-          signal_strength: signalStrength,
-          confirmation_required: confirmationRequired,
-          min_signals_for_buy: Number(minSignalsForBuy),
-          min_signals_for_sell: Number(minSignalsForSell)
-        }
-      };
-      const res = await fetch(`${baseUrl}/strategies`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${accessToken}`,
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Failed to create Indy Trend strategy.");
-      }
-      setSuccess("Indy Trend strategy created successfully.");
-      setShowProceedPopup(true);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleReset = () => {
-    setStrategyName("");
-    setInvestment("");
-    setInvestmentCap("");
-    setTimeFrame("5m");
-    setLeverage("");
-    setLowerLimit("");
-    setUpperLimit("");
-    setPriceTriggerStart("");
-    setPriceTriggerStop("");
-    setStopLossBy("");
-    setIndicators([]);
-    setSignalStrength("medium");
-    setConfirmationRequired(true);
-    setMinSignalsForBuy("2");
-    setMinSignalsForSell("1");
-    setError("");
-    setSuccess("");
-  };
-
   return (
     <div className="w-full max-w-md mx-auto">
-      {showProceedPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-4">
-            <ProceedPopup variant="extended" />
-            <button className="mt-4 w-full bg-gray-200 py-2 rounded" onClick={() => setShowProceedPopup(false)}>
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-      <AccountDetailsCard
-        selectedApi={selectedApi}
-        setSelectedApi={setSelectedApi}
-        isBrokeragesLoading={isBrokeragesLoading}
-        brokerages={brokerages}
-      />
+   <AccountDetailsCard
+     selectedApi={selectedApi}
+     setSelectedApi={setSelectedApi}
+     isBrokeragesLoading={isBrokeragesLoading}
+     brokerages={brokerages}
+   />
       <form className="space-y-4 mt-4 dark:text-white">
         <Collapsible
           open={isIndyOpen}
@@ -190,55 +59,63 @@ export default function IndyTrend() {
           <CollapsibleContent className="space-y-4 rounded-b-md border border-t-0 p-4">
             <div className="space-y-2">
               <Label htmlFor="strategy">Strategy Name</Label>
-              <Input id="strategy" placeholder="Enter Name" value={strategyName} onChange={e => setStrategyName(e.target.value)} />
+              <Input id="strategy" placeholder="Enter Name" />
             </div>
+            
             <div className="space-y-2">
               <Label htmlFor="investment">Investment</Label>
               <div className="relative">
-                <Input id="investment" placeholder="Value" value={investment} onChange={e => setInvestment(e.target.value)} />
+                <Input id="investment" placeholder="Value" />
                 <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">USTD</span>
               </div>
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="investment-cap">Investment CAP</Label>
               <div className="relative">
-                <Input id="investment-cap" placeholder="Value" value={investmentCap} onChange={e => setInvestmentCap(e.target.value)} />
+                <Input id="investment-cap" placeholder="Value" />
                 <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">USTD</span>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Time Frame</Label>
-              <Input placeholder="5m" value={timeFrame} onChange={e => setTimeFrame(e.target.value)} />
-            </div>
+
             <div className="space-y-2">
               <Label>Leverage</Label>
-              <Input placeholder="Value" value={leverage} onChange={e => setLeverage(e.target.value)} />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative">
+                  <Input placeholder="Lower Limit" />
+                  <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">USTD</span>
+                </div>
+                <div className="relative">
+                  <Input placeholder="Upper Limit" />
+                  <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">USTD</span>
+                </div>
+              </div>
             </div>
+
             <div className="space-y-2">
-              <Label>Lower Limit</Label>
-              <Input placeholder="Value" value={lowerLimit} onChange={e => setLowerLimit(e.target.value)} />
+              <Label>Price Trigger</Label>
+              <div className="space-y-4">
+                <div className="relative">
+                  <Input placeholder="Start Value" />
+                  <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">USTD</span>
+                </div>
+                <div className="relative">
+                  <Input placeholder="Stop Value" />
+                  <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">USTD</span>
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Upper Limit</Label>
-              <Input placeholder="Value" value={upperLimit} onChange={e => setUpperLimit(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Price Trigger Start</Label>
-              <Input placeholder="Value" value={priceTriggerStart} onChange={e => setPriceTriggerStart(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Price Trigger Stop</Label>
-              <Input placeholder="Value" value={priceTriggerStop} onChange={e => setPriceTriggerStop(e.target.value)} />
-            </div>
+
             <div className="space-y-2">
               <Label htmlFor="stop-loss">Stop Loss By</Label>
               <div className="relative">
-                <Input id="stop-loss" placeholder="Value" value={stopLossBy} onChange={e => setStopLossBy(e.target.value)} />
+                <Input id="stop-loss" placeholder="Value" />
                 <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">USTD</span>
               </div>
             </div>
           </CollapsibleContent>
         </Collapsible>
+
         <Collapsible
           open={isAdvancedOpen}
           onOpenChange={setIsAdvancedOpen}
@@ -250,52 +127,56 @@ export default function IndyTrend() {
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-4 rounded-b-md border border-t-0 p-4">
             <div className="flex items-center space-x-2">
-              <Checkbox id="supertread" checked={indicators.includes('supertread')} onCheckedChange={() => handleIndicatorChange('supertread')} />
+              <Checkbox id="supertread" />
               <Label htmlFor="supertread">Supertread</Label>
             </div>
+
             <div className="grid grid-cols-3 gap-4">
-              {['Neutral', 'Long', 'Short'].map(val => (
-                <Button key={val} variant={signalStrength === val.toLowerCase() ? "default" : "outline"} size="sm" type="button" onClick={() => setSignalStrength(val.toLowerCase())}>{val}</Button>
-              ))}
+              <Button variant="outline" size="sm">Neutral</Button>
+              <Button variant="outline" size="sm">Long</Button>
+              <Button variant="outline" size="sm">Short</Button>
             </div>
-            {['rsi', 'macd', 'ema', 'adx'].map((item, index) => (
+
+            {['RSI 1', 'RSI 2', 'RSI 3', 'ADX'].map((item, index) => (
               <div key={index} className="space-y-4">
                 <div className="flex items-center space-x-2">
-                  <Checkbox id={item} checked={indicators.includes(item)} onCheckedChange={() => handleIndicatorChange(item)} />
-                  <Label htmlFor={item}>{item.toUpperCase()}</Label>
+                  <Checkbox id={item.toLowerCase().replace(' ', '-')} />
+                  <Label htmlFor={item.toLowerCase().replace(' ', '-')}>{item}</Label>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Length</Label>
+                    <Input defaultValue="21" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Source</Label>
+                    <Select defaultValue="close">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="close">Close</SelectItem>
+                        <SelectItem value="open">Open</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Timeframe</Label>
+                    <Input defaultValue="6S" />
+                  </div>
                 </div>
               </div>
             ))}
-            <div className="space-y-2">
-              <Label>Confirmation Required</Label>
-              <Select value={confirmationRequired ? "yes" : "no"} onValueChange={val => setConfirmationRequired(val === "yes") }>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="yes">Yes</SelectItem>
-                  <SelectItem value="no">No</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Min Signals for Buy</Label>
-              <Input placeholder="2" value={minSignalsForBuy} onChange={e => setMinSignalsForBuy(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Min Signals for Sell</Label>
-              <Input placeholder="1" value={minSignalsForSell} onChange={e => setMinSignalsForSell(e.target.value)} />
-            </div>
           </CollapsibleContent>
         </Collapsible>
-        {error && <div className="text-red-500 text-sm">{error}</div>}
-        {success && <div className="text-green-500 text-sm">{success}</div>}
+
         <div className="flex gap-4">
-          <Button className="flex-1 bg-[#4A1515] text-white hover:bg-[#5A2525]" onClick={handleProceed} disabled={!selectedApi || loading}>{loading ? "Processing..." : "Proceed"}</Button>
-          <Button variant="outline" className="flex-1" type="button" onClick={handleReset}>Reset</Button>
+          <Button className="flex-1 bg-[#4A1515] text-white hover:bg-[#5A2525]">Proceed</Button>
+          <Button variant="outline" className="flex-1">Reset</Button>
         </div>
       </form>
     </div>
   )
 }
-
