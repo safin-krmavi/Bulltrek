@@ -1,6 +1,4 @@
 'use client'
-
-import * as React from "react"
 import { ChevronDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,20 +6,30 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Checkbox } from "@/components/ui/checkbox"
-// import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-// import { cn } from "@/lib/utils"
 import { AccountDetailsCard } from "@/components/trade/AccountDetailsCard"
-import { useEffect } from "react"
-
+import { useEffect, useState } from "react"
 import { brokerageService } from "@/api/brokerage"
 
 export default function IndyTrend() {
-  const [isIndyOpen, setIsIndyOpen] = React.useState(true)
-  const [isAdvancedOpen, setIsAdvancedOpen] = React.useState(false)
-  // const [accountDetailsOpen, setAccountDetailsOpen] = React.useState(true)
-  const [selectedApi, setSelectedApi] = React.useState("")
-  const [isBrokeragesLoading, setIsBrokeragesLoading] = React.useState(false)
-  const [brokerages, setBrokerages] = React.useState([])
+  const [isIndyOpen, setIsIndyOpen] = useState(true)
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false)
+  const [selectedApi, setSelectedApi] = useState("")
+  const [isBrokeragesLoading, setIsBrokeragesLoading] = useState(false)
+  const [brokerages, setBrokerages] = useState([])
+
+  // Added missing state
+  const [segment, setSegment] = useState("Delivery/Spot/Cash")
+  const [pair, setPair] = useState("BTCUSDT")
+
+  // Controlled input states
+  const [strategyName, setStrategyName] = useState("")
+  const [investment, setInvestment] = useState("")
+  const [investmentCap, setInvestmentCap] = useState("")
+  const [lowerLimit, setLowerLimit] = useState("")
+  const [upperLimit, setUpperLimit] = useState("")
+  const [priceTriggerStart, setPriceTriggerStart] = useState("")
+  const [priceTriggerStop, setPriceTriggerStop] = useState("")
+  const [stopLossBy, setStopLossBy] = useState("")
 
   useEffect(() => {
     async function fetchBrokerages() {
@@ -40,18 +48,18 @@ export default function IndyTrend() {
 
   return (
     <div className="w-full max-w-md mx-auto">
-   <AccountDetailsCard
-     selectedApi={selectedApi}
-     setSelectedApi={setSelectedApi}
-     isBrokeragesLoading={isBrokeragesLoading}
-     brokerages={brokerages}
-   />
+      <AccountDetailsCard
+        selectedApi={selectedApi}
+        setSelectedApi={setSelectedApi}
+        isBrokeragesLoading={isBrokeragesLoading}
+        brokerages={brokerages}
+        segment={segment}
+        setSegment={setSegment}
+        pair={pair}
+        setPair={setPair}
+      />
       <form className="space-y-4 mt-4 dark:text-white">
-        <Collapsible
-          open={isIndyOpen}
-          onOpenChange={setIsIndyOpen}
-          className="space-y-2"
-        >
+        <Collapsible open={isIndyOpen} onOpenChange={setIsIndyOpen} className="space-y-2">
           <CollapsibleTrigger className="flex w-full items-center justify-between border border-t-0 rounded-t-md bg-[#4A1515] p-4 font-medium text-white hover:bg-[#5A2525]">
             <span>Indy Trend</span>
             <ChevronDown className={`h-4 w-4 transition-transform ${isIndyOpen ? "rotate-180" : ""}`} />
@@ -59,68 +67,59 @@ export default function IndyTrend() {
           <CollapsibleContent className="space-y-4 rounded-b-md border border-t-0 p-4">
             <div className="space-y-2">
               <Label htmlFor="strategy">Strategy Name</Label>
-              <Input id="strategy" placeholder="Enter Name" />
+              <Input id="strategy" placeholder="Enter Name" value={strategyName} onChange={e => setStrategyName(e.target.value)} />
             </div>
-            
             <div className="space-y-2">
               <Label htmlFor="investment">Investment</Label>
               <div className="relative">
-                <Input id="investment" placeholder="Value" />
+                <Input id="investment" placeholder="Value" value={investment} onChange={e => setInvestment(e.target.value)} />
                 <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">USTD</span>
               </div>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="investment-cap">Investment CAP</Label>
               <div className="relative">
-                <Input id="investment-cap" placeholder="Value" />
+                <Input id="investment-cap" placeholder="Value" value={investmentCap} onChange={e => setInvestmentCap(e.target.value)} />
                 <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">USTD</span>
               </div>
             </div>
-
             <div className="space-y-2">
               <Label>Leverage</Label>
               <div className="grid grid-cols-2 gap-4">
                 <div className="relative">
-                  <Input placeholder="Lower Limit" />
+                  <Input placeholder="Lower Limit" value={lowerLimit} onChange={e => setLowerLimit(e.target.value)} />
                   <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">USTD</span>
                 </div>
                 <div className="relative">
-                  <Input placeholder="Upper Limit" />
+                  <Input placeholder="Upper Limit" value={upperLimit} onChange={e => setUpperLimit(e.target.value)} />
                   <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">USTD</span>
                 </div>
               </div>
             </div>
-
             <div className="space-y-2">
               <Label>Price Trigger</Label>
               <div className="space-y-4">
                 <div className="relative">
-                  <Input placeholder="Start Value" />
+                  <Input placeholder="Start Value" value={priceTriggerStart} onChange={e => setPriceTriggerStart(e.target.value)} />
                   <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">USTD</span>
                 </div>
                 <div className="relative">
-                  <Input placeholder="Stop Value" />
+                  <Input placeholder="Stop Value" value={priceTriggerStop} onChange={e => setPriceTriggerStop(e.target.value)} />
                   <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">USTD</span>
                 </div>
               </div>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="stop-loss">Stop Loss By</Label>
               <div className="relative">
-                <Input id="stop-loss" placeholder="Value" />
-                <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">USTD</span>
+                <Input id="stop-loss" placeholder="Value" value={stopLossBy} onChange={e => setStopLossBy(e.target.value)} />
+                <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
               </div>
             </div>
           </CollapsibleContent>
         </Collapsible>
 
-        <Collapsible
-          open={isAdvancedOpen}
-          onOpenChange={setIsAdvancedOpen}
-          className="space-y-2"
-        >
+        <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen} className="space-y-2">
           <CollapsibleTrigger className="flex w-full items-center justify-between border border-t-0 rounded-t-md bg-[#4A1515] p-4 font-medium text-white hover:bg-[#5A2525]">
             <span>Advanced Settings</span>
             <ChevronDown className={`h-4 w-4 transition-transform ${isAdvancedOpen ? "rotate-180" : ""}`} />
@@ -130,13 +129,11 @@ export default function IndyTrend() {
               <Checkbox id="supertread" />
               <Label htmlFor="supertread">Supertread</Label>
             </div>
-
             <div className="grid grid-cols-3 gap-4">
               <Button variant="outline" size="sm">Neutral</Button>
               <Button variant="outline" size="sm">Long</Button>
               <Button variant="outline" size="sm">Short</Button>
             </div>
-
             {['RSI 1', 'RSI 2', 'RSI 3', 'ADX'].map((item, index) => (
               <div key={index} className="space-y-4">
                 <div className="flex items-center space-x-2">
@@ -174,7 +171,16 @@ export default function IndyTrend() {
 
         <div className="flex gap-4">
           <Button className="flex-1 bg-[#4A1515] text-white hover:bg-[#5A2525]">Proceed</Button>
-          <Button variant="outline" className="flex-1">Reset</Button>
+          <Button variant="outline" className="flex-1" type="button" onClick={() => {
+            setStrategyName("");
+            setInvestment("");
+            setInvestmentCap("");
+            setLowerLimit("");
+            setUpperLimit("");
+            setPriceTriggerStart("");
+            setPriceTriggerStop("");
+            setStopLossBy("");
+          }}>Reset</Button>
         </div>
       </form>
     </div>

@@ -25,7 +25,7 @@ import { PlatformDetails } from '../components/account/platformDetails';
 import { useIndicatorActions } from '@/hooks/useIndicatorAction'
 import { useIndicatorValues } from '@/hooks/useValue'
 // import { useTransactionHistory } from '@/hooks/useTransactionHistory';
-import { ApiConnect } from "@/components/account/ApiConnect";
+import  ApiConnect  from "../components/dashboard/ApiConnect";
 import { Eye, EyeOff } from 'lucide-react';
 // import {
 //   AlertDialog,

@@ -135,9 +135,8 @@ export const brokerageService = {
   }) => apiClient.put('/users/{id}/brokerages/details/link', data),
 
   getBrokerageDetails: () => 
-    apiClient.get('/users/{id}/brokerages/details/fetch')
-};
-// API Connections endpoint for dashboard API Connect card
-export const apiConnections = {
-  getAll: () => apiClient.get('/brokerage/api-connections'),
+    apiClient.get('/users/{id}/brokerages/details/fetch'),
+
+  getAllApiConnections: () => 
+    apiClient.get('/brokerage/api-connections'),
 };

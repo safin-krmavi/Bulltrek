@@ -1,8 +1,7 @@
 import ShareCard from "@/components/dashboard/share-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-
-import { ApiConnect } from "../components/account/ApiConnect";
+import  ApiConnect  from "../components/dashboard/ApiConnect";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,

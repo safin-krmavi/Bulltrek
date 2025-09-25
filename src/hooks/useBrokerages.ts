@@ -3,7 +3,6 @@ import {
   brokerageMaster,
   brokerageService,
   zerodhaApi,
-  apiConnections,
   type BrokerageBalance,
   type BrokerageMaster,
   type BrokerageOrder,
@@ -68,10 +67,10 @@ export const useBrokerageManagement = () => {
   });
 
   // New API call for API Connect card
-  const getApiConnections = useQuery({
-    queryKey: ['apiConnections'],
-    queryFn: () => apiConnections.getAll().then((res: any) => res.data)
-  });
+  // const getApiConnections = useQuery({
+  //   queryKey: ['apiConnections'],
+  //   queryFn: () => apiConnections.getAll().then((res: any) => res.data)
+  // });
 
   // Keep old getBrokerageDetails for legacy use
   const getBrokerageDetails = useQuery({
@@ -82,7 +81,7 @@ export const useBrokerageManagement = () => {
   return {
     linkBrokerage,
     getBrokerageDetails,
-    getApiConnections
+    // getApiConnections
   };
 };
 

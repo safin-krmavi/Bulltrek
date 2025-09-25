@@ -1,5 +1,4 @@
 'use client'
-
 import * as React from "react"
 import { ChevronDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
@@ -7,33 +6,34 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-// import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-// import { cn } from "@/lib/utils"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { AccountDetailsCard } from "@/components/trade/AccountDetailsCard"
-import { brokerageService } from "@/api/brokerage"
+import { brokerageService, BrokerageConnection } from "@/api/brokerage"
 
 export default function PriceAction() {
-  const [isOpen, setIsOpen] = React.useState(true)
-  const [selectedApi, setSelectedApi] = React.useState("")
-  const [isBrokeragesLoading, setIsBrokeragesLoading] = React.useState(false)
-  const [brokerages, setBrokerages] = React.useState([])
+  const [isOpen, setIsOpen] = useState(true)
+  const [selectedApi, setSelectedApi] = useState("")
+  const [isBrokeragesLoading, setIsBrokeragesLoading] = useState(false)
+  const [brokerages, setBrokerages] = useState<BrokerageConnection[]>([])
+  // Added missing state for segment and pair
+  const [segment, setSegment] = useState("Delivery/Spot/Cash")
+  const [pair, setPair] = useState("BTCUSDT")
   // Form state
-  const [name, setName] = React.useState("")
-  const [direction, setDirection] = React.useState("buy")
-  const [quantity, setQuantity] = React.useState("")
-  const [asset, setAsset] = React.useState("BTCUSDT")
-  const [timeframe, setTimeframe] = React.useState("4h")
-  const [patternConfidence, setPatternConfidence] = React.useState("")
-  const [supportResistanceStrength, setSupportResistanceStrength] = React.useState("")
-  const [breakoutThreshold, setBreakoutThreshold] = React.useState("")
-  const [riskLevel, setRiskLevel] = React.useState("medium")
-  const [supportLevel, setSupportLevel] = React.useState("")
-  const [candlestickPattern, setCandlestickPattern] = React.useState("")
-  const [operator, setOperator] = React.useState("AND")
-  const [loading, setLoading] = React.useState(false)
-  const [error, setError] = React.useState("")
-  const [success, setSuccess] = React.useState("")
+  const [name, setName] = useState("")
+  const [direction, setDirection] = useState("buy")
+  const [quantity, setQuantity] = useState("")
+  const [asset, setAsset] = useState("BTCUSDT")
+  const [timeframe, setTimeframe] = useState("4h")
+  const [patternConfidence, setPatternConfidence] = useState("")
+  const [supportResistanceStrength, setSupportResistanceStrength] = useState("")
+  const [breakoutThreshold, setBreakoutThreshold] = useState("")
+  const [riskLevel, setRiskLevel] = useState("medium")
+  const [supportLevel, setSupportLevel] = useState("")
+  const [candlestickPattern, setCandlestickPattern] = useState("")
+  const [operator, setOperator] = useState("AND")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
   // Auth token
   const token = localStorage.getItem("authToken") || "";
 
@@ -91,9 +91,12 @@ export default function PriceAction() {
         support_resistance_strength: Number(supportResistanceStrength),
         breakout_threshold: Number(breakoutThreshold),
         risk_level: riskLevel,
-        api_id: selectedApi
+        api_id: selectedApi,
+        segment,
+        pair
       };
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/strategies`, {
+      const baseUrl = import.meta.env.VITE_API_URL || "";
+      const res = await fetch(`${baseUrl}/strategies`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -120,6 +123,10 @@ export default function PriceAction() {
         setSelectedApi={setSelectedApi}
         isBrokeragesLoading={isBrokeragesLoading}
         brokerages={brokerages}
+        segment={segment}
+        setSegment={setSegment}
+        pair={pair}
+        setPair={setPair}
       />
       <form className="space-y-4 mt-4 dark:text-white">
         {error && <div className="text-red-500 text-sm">{error}</div>}
@@ -221,7 +228,25 @@ export default function PriceAction() {
           <Button className="flex-1 bg-[#4A1515] hover:bg-[#5A2525]" onClick={handleProceed} disabled={loading || !selectedApi}>
             {loading ? "Processing..." : "Proceed"}
           </Button>
-          <Button variant="outline" className="flex-1 bg-[#D97706] text-white hover:bg-[#B45309]" onClick={e => {e.preventDefault(); setName(""); setDirection("buy"); setQuantity(""); setAsset("BTCUSDT"); setTimeframe("4h"); setPatternConfidence(""); setSupportResistanceStrength(""); setBreakoutThreshold(""); setSupportLevel(""); setCandlestickPattern(""); setOperator("AND"); setRiskLevel("medium"); setError(""); setSuccess("");}}>
+          <Button variant="outline" className="flex-1 bg-[#D97706] text-white hover:bg-[#B45309]" onClick={e => {
+            e.preventDefault();
+            setName("");
+            setDirection("buy");
+            setQuantity("");
+            setAsset("BTCUSDT");
+            setTimeframe("4h");
+            setPatternConfidence("");
+            setSupportResistanceStrength("");
+            setBreakoutThreshold("");
+            setSupportLevel("");
+            setCandlestickPattern("");
+            setOperator("AND");
+            setRiskLevel("medium");
+            setError("");
+            setSuccess("");
+            setSegment("Delivery/Spot/Cash");
+            setPair("BTCUSDT");
+          }}>
             Reset
           </Button>
         </div>
