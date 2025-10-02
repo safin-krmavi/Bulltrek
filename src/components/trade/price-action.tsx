@@ -1,4 +1,5 @@
 'use client'
+
 import * as React from "react"
 import { ChevronDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
@@ -6,45 +7,67 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useEffect, useState } from "react"
+import { toast } from "sonner"
 import { AccountDetailsCard } from "@/components/trade/AccountDetailsCard"
-import { brokerageService, BrokerageConnection } from "@/api/brokerage"
+import { brokerageService } from "@/api/brokerage"
+import { ErrorBoundary } from 'react-error-boundary'
+
+interface Strategy {
+  name: string;
+  strategy_type: string;
+  provider: string;
+  investment: number;
+  investment_cap: number;
+  risk_level: string;
+  price_trigger_start: number;
+  price_trigger_stop: number;
+  take_profit: number;
+  stop_loss: number;
+}
+
+function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
+  return (
+    <div className="p-4 text-red-500">
+      <p>Something went wrong:</p>
+      <pre>{error.message}</pre>
+      <Button onClick={resetErrorBoundary}>Try again</Button>
+    </div>
+  );
+}
 
 export default function PriceAction() {
-  const [isOpen, setIsOpen] = useState(true)
-  const [selectedApi, setSelectedApi] = useState("")
-  const [isBrokeragesLoading, setIsBrokeragesLoading] = useState(false)
-  const [brokerages, setBrokerages] = useState<BrokerageConnection[]>([])
-  // Added missing state for segment and pair
-  const [segment, setSegment] = useState("Delivery/Spot/Cash")
-  const [pair, setPair] = useState("BTCUSDT")
-  // Form state
-  const [name, setName] = useState("")
-  const [direction, setDirection] = useState("buy")
-  const [quantity, setQuantity] = useState("")
-  const [asset, setAsset] = useState("BTCUSDT")
-  const [timeframe, setTimeframe] = useState("4h")
-  const [patternConfidence, setPatternConfidence] = useState("")
-  const [supportResistanceStrength, setSupportResistanceStrength] = useState("")
-  const [breakoutThreshold, setBreakoutThreshold] = useState("")
-  const [riskLevel, setRiskLevel] = useState("medium")
-  const [supportLevel, setSupportLevel] = useState("")
-  const [candlestickPattern, setCandlestickPattern] = useState("")
-  const [operator, setOperator] = useState("AND")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
-  // Auth token
-  const token = localStorage.getItem("authToken") || "";
+  // State for collapsible sections
+  const [isOpen, setIsOpen] = React.useState(true)
+  const [isAdvancedOpen, setIsAdvancedOpen] = React.useState(false)
 
-  useEffect(() => {
+  // Account Details States
+  const [selectedApi, setSelectedApi] = React.useState("")
+  const [isBrokeragesLoading, setIsBrokeragesLoading] = React.useState(false)
+  const [brokerages, setBrokerages] = React.useState([])
+  const [segment, setSegment] = React.useState("")
+  const [pair, setPair] = React.useState("")
+
+  // Form States
+  const [strategyName, setStrategyName] = React.useState("")
+  const [investment, setInvestment] = React.useState("")
+  const [investmentCap, setInvestmentCap] = React.useState("")
+  const [riskLevel, setRiskLevel] = React.useState("safe")
+  const [priceTriggerStart, setPriceTriggerStart] = React.useState("")
+  const [priceTriggerStop, setPriceTriggerStop] = React.useState("")
+  const [takeProfit, setTakeProfit] = React.useState("")
+  const [stopLoss, setStopLoss] = React.useState("")
+  const [loading, setLoading] = React.useState(false)
+
+  React.useEffect(() => {
     async function fetchBrokerages() {
       setIsBrokeragesLoading(true)
       try {
         const res = await brokerageService.getBrokerageDetails()
         setBrokerages(res.data.data || [])
-      } catch {
+      } catch (error) {
+        console.error('Failed to fetch brokerages:', error)
         setBrokerages([])
+        toast.error("Failed to fetch brokerages")
       } finally {
         setIsBrokeragesLoading(false)
       }
@@ -52,206 +75,248 @@ export default function PriceAction() {
     fetchBrokerages()
   }, [])
 
-  const handleProceed = async (e: React.MouseEvent) => {
+  const resetForm = React.useCallback(() => {
+    setStrategyName("");
+    setInvestment("");
+    setInvestmentCap("");
+    setRiskLevel("safe");
+    setPriceTriggerStart("");
+    setPriceTriggerStop("");
+    setTakeProfit("");
+    setStopLoss("");
+  }, []);
+
+  const handleSubmit = React.useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    
     if (!selectedApi) {
-      setError("Please select an API connection.");
+      toast.error("Please select an API first");
       return;
     }
-    if (!name || !quantity || !supportLevel || !candlestickPattern || !patternConfidence || !supportResistanceStrength || !breakoutThreshold) {
-      setError("Please fill all required fields.");
-      return;
-    }
+
     setLoading(true);
     try {
-      const body = {
-        name,
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      const strategy: Strategy = {
+        name: strategyName,
         strategy_type: "price_action",
         provider: "PriceActionService",
-        conditions: [
-          {
-            indicator: "Support Level",
-            action: "bounces_off",
-            value: Number(supportLevel)
-          },
-          {
-            indicator: "Candlestick Pattern",
-            action: "bullish_engulfing",
-            value: Number(candlestickPattern)
-          }
-        ],
-        operators: [operator],
-        direction,
-        quantity: Number(quantity),
-        asset,
-        timeframe,
-        pattern_confidence: Number(patternConfidence),
-        support_resistance_strength: Number(supportResistanceStrength),
-        breakout_threshold: Number(breakoutThreshold),
+        investment: Number(investment),
+        investment_cap: Number(investmentCap),
         risk_level: riskLevel,
-        api_id: selectedApi,
-        segment,
-        pair
+        price_trigger_start: Number(priceTriggerStart),
+        price_trigger_stop: Number(priceTriggerStop),
+        take_profit: Number(takeProfit),
+        stop_loss: Number(stopLoss)
       };
-      const baseUrl = import.meta.env.VITE_API_URL || "";
-      const res = await fetch(`${baseUrl}/strategies`, {
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/strategies`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(strategy),
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Failed to create strategy.");
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create strategy");
       }
-      setSuccess("Price Action strategy created successfully!");
+
+      toast.success("Strategy created successfully!");
+      resetForm();
     } catch (err: any) {
-      setError(err.message || "Error occurred.");
+      toast.error(err.message || "Error creating strategy");
+      console.error("Strategy creation error:", err);
     } finally {
       setLoading(false);
     }
-  }
+  }, [selectedApi, strategyName, investment, investmentCap, riskLevel, priceTriggerStart, priceTriggerStop, takeProfit, stopLoss, resetForm]);
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <AccountDetailsCard
-        selectedApi={selectedApi}
-        setSelectedApi={setSelectedApi}
-        isBrokeragesLoading={isBrokeragesLoading}
-        brokerages={brokerages}
-        segment={segment}
-        setSegment={setSegment}
-        pair={pair}
-        setPair={setPair}
-      />
-      <form className="space-y-4 mt-4 dark:text-white">
-        {error && <div className="text-red-500 text-sm">{error}</div>}
-        {success && <div className="text-green-500 text-sm">{success}</div>}
-        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-t-md bg-[#4A1515] p-4 font-medium text-white  border border-t-0 hover:bg-[#5A2525]">
-            <span>Price Action</span>
-            <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 rounded-b-md border border-t-0 p-4">
-            <div className="space-y-2">
-              <Label>Strategy Name</Label>
-              <Input placeholder="Enter Name" value={name} onChange={e => setName(e.target.value)} />
-            </div>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <div className="w-full max-w-md mx-auto">
+        <AccountDetailsCard
+          selectedApi={selectedApi}
+          setSelectedApi={setSelectedApi}
+          isBrokeragesLoading={isBrokeragesLoading}
+          brokerages={brokerages}
+          segment={segment}
+          setSegment={setSegment}
+          pair={pair}
+          setPair={setPair}
+        />
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+            <CollapsibleTrigger className="flex w-full items-center justify-between rounded-t-md bg-[#4A1515] p-4 font-medium text-white hover:bg-[#5A2525]">
+              <span>Price Action</span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4 rounded-b-md border border-t-0 p-4">
+              <div className="grid grid-cols-3 gap-2">
+                <Button variant="outline" className="bg-[#D97706] text-white hover:bg-[#B45309]">
+                  Safe
+                </Button>
+                <Button variant="outline">Moderate</Button>
+                <Button variant="outline">Risky</Button>
+              </div>
 
-            <div className="space-y-2">
-              <Label>Direction</Label>
-              <Select value={direction} onValueChange={setDirection}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="buy">Buy</SelectItem>
-                  <SelectItem value="sell">Sell</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  Strategy Name
+                  <span className="text-muted-foreground">ⓘ</span>
+                </Label>
+                <Input placeholder="Enter Name" value={strategyName} onChange={(e) => setStrategyName(e.target.value)} />
+              </div>
 
-            <div className="space-y-2">
-              <Label>Quantity</Label>
-              <Input placeholder="Quantity" value={quantity} onChange={e => setQuantity(e.target.value)} />
-            </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  Investment
+                  <span className="text-muted-foreground">ⓘ</span>
+                </Label>
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="Value" 
+                    value={investment} 
+                    onChange={(e) => setInvestment(e.target.value)} 
+                    disabled={loading}
+                  />
+                  <Select defaultValue="USTD">
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USTD">USTD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <p className="text-sm text-orange-500">Avbl: 389 USTD</p>
+              </div>
 
-            <div className="space-y-2">
-              <Label>Asset</Label>
-              <Input placeholder="Asset" value={asset} onChange={e => setAsset(e.target.value)} />
-            </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  Investment CAP
+                  <span className="text-muted-foreground">ⓘ</span>
+                </Label>
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="Value" 
+                    value={investmentCap} 
+                    onChange={(e) => setInvestmentCap(e.target.value)} 
+                    disabled={loading}
+                  />
+                  <Select defaultValue="USTD">
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USTD">USTD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
-            <div className="space-y-2">
-              <Label>Timeframe</Label>
-              <Input placeholder="4h" value={timeframe} onChange={e => setTimeframe(e.target.value)} />
-            </div>
+          <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
+            <CollapsibleTrigger className="flex w-full items-center justify-between rounded-t-md bg-[#4A1515] p-4 font-medium text-white hover:bg-[#5A2525]">
+              <span>Advanced Settings</span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${isAdvancedOpen ? "rotate-180" : ""}`} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4 rounded-b-md border border-t-0 p-4">
+              <div className="space-y-2">
+                <Label>Price Trigger Start</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="Value" 
+                    value={priceTriggerStart} 
+                    onChange={(e) => setPriceTriggerStart(e.target.value)} 
+                    disabled={loading}
+                  />
+                  <Select defaultValue="USTD">
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USTD">USTD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <Label>Pattern Confidence</Label>
-              <Input placeholder="80" value={patternConfidence} onChange={e => setPatternConfidence(e.target.value)} />
-            </div>
+              <div className="space-y-2">
+                <Label>Price Trigger Stop</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="Value" 
+                    value={priceTriggerStop} 
+                    onChange={(e) => setPriceTriggerStop(e.target.value)} 
+                    disabled={loading}
+                  />
+                  <Select defaultValue="USTD">
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USTD">USTD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <Label>Support Resistance Strength</Label>
-              <Input placeholder="3" value={supportResistanceStrength} onChange={e => setSupportResistanceStrength(e.target.value)} />
-            </div>
+              <div className="space-y-2">
+                <Label>Take Profit</Label>
+                <div className="relative">
+                  <Input 
+                    placeholder="Value" 
+                    value={takeProfit} 
+                    onChange={(e) => setTakeProfit(e.target.value)} 
+                    disabled={loading}
+                  />
+                  <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <Label>Breakout Threshold</Label>
-              <Input placeholder="1.5" value={breakoutThreshold} onChange={e => setBreakoutThreshold(e.target.value)} />
-            </div>
+              <div className="space-y-2">
+                <Label>Stop Loss By</Label>
+                <div className="relative">
+                  <Input 
+                    placeholder="Value" 
+                    value={stopLoss} 
+                    onChange={(e) => setStopLoss(e.target.value)} 
+                    disabled={loading}
+                  />
+                  <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
-            <div className="space-y-2">
-              <Label>Support Level (bounces off)</Label>
-              <Input placeholder="45000" value={supportLevel} onChange={e => setSupportLevel(e.target.value)} />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Candlestick Pattern (bullish engulfing)</Label>
-              <Input placeholder="1" value={candlestickPattern} onChange={e => setCandlestickPattern(e.target.value)} />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Operator</Label>
-              <Select value={operator} onValueChange={setOperator}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="AND">AND</SelectItem>
-                  <SelectItem value="OR">OR</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Risk Level</Label>
-              <Select value={riskLevel} onValueChange={setRiskLevel}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-
-        <div className="flex gap-4">
-          <Button className="flex-1 bg-[#4A1515] hover:bg-[#5A2525]" onClick={handleProceed} disabled={loading || !selectedApi}>
-            {loading ? "Processing..." : "Proceed"}
-          </Button>
-          <Button variant="outline" className="flex-1 bg-[#D97706] text-white hover:bg-[#B45309]" onClick={e => {
-            e.preventDefault();
-            setName("");
-            setDirection("buy");
-            setQuantity("");
-            setAsset("BTCUSDT");
-            setTimeframe("4h");
-            setPatternConfidence("");
-            setSupportResistanceStrength("");
-            setBreakoutThreshold("");
-            setSupportLevel("");
-            setCandlestickPattern("");
-            setOperator("AND");
-            setRiskLevel("medium");
-            setError("");
-            setSuccess("");
-            setSegment("Delivery/Spot/Cash");
-            setPair("BTCUSDT");
-          }}>
-            Reset
-          </Button>
-        </div>
-      </form>
-    </div>
+          <div className="flex gap-4">
+            <Button 
+              type="submit"
+              className="flex-1 bg-[#4A1515] hover:bg-[#5A2525]"
+              disabled={loading}
+            >
+              {loading ? "Processing..." : "Proceed"}
+            </Button>
+            <Button 
+              type="button"
+              variant="outline" 
+              className="flex-1 bg-[#D97706] text-white hover:bg-[#B45309]"
+              disabled={loading}
+              onClick={resetForm}
+            >
+              Reset
+            </Button>
+          </div>
+        </form>
+      </div>
+    </ErrorBoundary>
   )
 }
-
