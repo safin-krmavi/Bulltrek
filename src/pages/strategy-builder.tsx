@@ -1,28 +1,42 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import apiClient from "@/api/apiClient";
-// import { STRATEGY_KEYWORDS } from "../strategyKeywords";
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import { Input } from "@/components/ui/input";
-
-// const BASE_URL = import.meta.env.VITE_API_URL as string;
 
 export default function StrategyBuilderPage() {
   const [strategyName, setStrategyName] = useState("");
-  const [prompt, setPrompt] = useState("");
-  const [description, setDescription] = useState("");
+  const [exitCondition, setExitCondition] = useState("");
+  const [selectedTimeframes, setSelectedTimeframes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [conditions, setConditions] = useState<string[]>([""]);
+
+  const timeframes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'Sell', 'Buy', '1M', '5M', '15M', '15M', '30M', '45M'];
 
   const getAuthToken = () => {
-    return (
-      localStorage.getItem("AUTH_TOKEN") ||
-      localStorage.getItem("token") ||
-      localStorage.getItem("authToken") ||
-      localStorage.getItem("accessToken") ||
-      ""
-    );
+    return localStorage.getItem("AUTH_TOKEN") || 
+           localStorage.getItem("token") || 
+           localStorage.getItem("authToken") || 
+           localStorage.getItem("accessToken") || 
+           "";
+  };
+
+  const handleTimeframeClick = (timeframe: string) => {
+    if (selectedTimeframes.includes(timeframe)) {
+      setSelectedTimeframes(selectedTimeframes.filter(t => t !== timeframe));
+    } else {
+      setSelectedTimeframes([...selectedTimeframes, timeframe]);
+    }
+  };
+
+  const handleAddCondition = () => {
+    setConditions([...conditions, ""]);
+  };
+
+  const handleConditionChange = (index: number, value: string) => {
+    const newConditions = [...conditions];
+    newConditions[index] = value;
+    setConditions(newConditions);
   };
 
   // Create bot function
@@ -36,20 +50,14 @@ export default function StrategyBuilderPage() {
         execution_type: "manual",
       };
 
-      console.log("Creating bot with payload:", botPayload);
-
       const response = await apiClient.post("/bots", botPayload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       console.log("Bot creation response:", response.data);
-      alert(`Bot created successfully! Bot ID: ${response.data?.data?.id || "N/A"}`);
       return response.data;
     } catch (error: any) {
       console.error("Bot creation error:", error);
-      const errorMessage =
-        error.response?.data?.message || error.message || "Failed to create bot";
-      alert(`Failed to create bot: ${errorMessage}`);
       throw error;
     }
   };
@@ -57,7 +65,7 @@ export default function StrategyBuilderPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!strategyName.trim() || !prompt.trim() || !description.trim()) {
+    if (!strategyName.trim() || conditions.some(condition => !condition.trim()) || !exitCondition.trim()) {
       alert("Please fill all fields.");
       return;
     }
@@ -70,8 +78,12 @@ export default function StrategyBuilderPage() {
 
     setLoading(true);
     try {
-      // Prefer singular endpoint
-      const payload = { prompt, name: strategyName, description };
+      const payload = { 
+        name: strategyName, 
+        entry_condition: conditions.join("; "), 
+        exit_condition: exitCondition, 
+        timeframes: selectedTimeframes.join(",") 
+      };
       let response;
 
       try {
@@ -79,7 +91,6 @@ export default function StrategyBuilderPage() {
           headers: { Authorization: `Bearer ${token}` },
         });
       } catch (err: any) {
-        // Fallback to plural if singular is not found
         if (err?.response?.status === 404) {
           response = await apiClient.post("/strategies", payload, {
             headers: { Authorization: `Bearer ${token}` },
@@ -89,8 +100,6 @@ export default function StrategyBuilderPage() {
         }
       }
 
-      console.log("Strategy creation response:", response.data);
-
       const strategyId = response.data?.data?.id;
       if (strategyId) {
         try {
@@ -99,21 +108,17 @@ export default function StrategyBuilderPage() {
             `Strategy and Bot created successfully! Strategy ID: ${strategyId}`
           );
         } catch (botError) {
-          console.error("Bot creation failed but strategy was created:", botError);
           setSuccessMessage(`Strategy created successfully! (Bot creation failed)`);
         }
-      } else {
-        setSuccessMessage(
-          "Strategy created but couldn't get strategy ID for bot creation"
-        );
       }
 
       setShowSuccessPopup(true);
       setTimeout(() => setShowSuccessPopup(false), 5000);
 
       setStrategyName("");
-      setPrompt("");
-      setDescription("");
+      setConditions([""]);
+      setExitCondition("");
+      setSelectedTimeframes([]);
     } catch (err: any) {
       console.error("Strategy creation error:", err);
       const errorMessage =
@@ -125,69 +130,92 @@ export default function StrategyBuilderPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#F5F6FA] dark:bg-[#18181B] flex flex-col items-center justify-start">
-      {/* Card container for dark mode with gradient and shadow */}
-      <div className="w-full max-w-4xl mx-auto my-12 bg-card dark:bg-gradient-to-br dark:from-[#232326] dark:to-[#18181B] border border-border dark:border-gray-700 shadow-2xl text-foreground dark:text-white rounded-2xl transition-all duration-300 p-10 flex flex-col relative overflow-hidden">
-        {/* Accent bar */}
-        <div className="absolute left-0 top-0 h-full w-2 bg-gradient-to-b from-[#FF8C00] to-[#7B2323] rounded-l-2xl" />
-        {/* Strategy Name Input */}
-        <div className="mb-8">
-          <label htmlFor="strategyName" className="block text-2xl font-bold text-[#7B2323] mb-2 flex items-center gap-2">
-            <span className="inline-block w-2 h-6 bg-[#FF8C00] rounded-full mr-2"></span>
-            Strategy Name
-          </label>
-          <input
-            id="strategyName"
-            type="text"
-            value={strategyName}
-            onChange={(e) => setStrategyName(e.target.value)}
-            placeholder="Enter your strategy name..."
-            className="w-full px-4 py-3 border border-[#FF8C00] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8C00] focus:border-transparent text-[#7B2323] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-[#232326] shadow-sm transition-all duration-200"
-          />
-        </div>
-        {/* Prompt Input */}
-        <div className="mb-8">
-          <label htmlFor="prompt" className="block text-2xl font-bold text-[#7B2323] mb-2 flex items-center gap-2">
-            <span className="inline-block w-2 h-6 bg-[#FF8C00] rounded-full mr-2"></span>
-            Prompt
-          </label>
-          <input
-            id="prompt"
-            type="text"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Enter your strategy prompt..."
-            className="w-full px-4 py-3 border border-[#FF8C00] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8C00] focus:border-transparent text-[#7B2323] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-[#232326] shadow-sm transition-all duration-200"
-          />
-        </div>
-        {/* Description Input */}
-        <div className="mb-8">
-          <label htmlFor="description" className="block text-2xl font-bold text-[#7B2323] mb-2 flex items-center gap-2">
-            <span className="inline-block w-2 h-6 bg-[#FF8C00] rounded-full mr-2"></span>
-            Description
-          </label>
-          <input
-            id="description"
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter your strategy description..."
-            className="w-full px-4 py-3 border border-[#FF8C00] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8C00] focus:border-transparent text-[#7B2323] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-[#232326] shadow-sm transition-all duration-200"
-          />
-        </div>
-        {/* Submit Button */}
-        <form onSubmit={onSubmit}>
-          <div className="flex gap-4 justify-end mt-6">
+    <div className="min-h-screen w-full bg-white dark:bg-gray-900 p-6 shadow-md">
+      <form onSubmit={onSubmit} className="max-w-5xl mx-auto space-y-8 shadow-sm border border-gray-200 dark:border-gray-700 p-6 rounded-lg">
+        {/* Strategy Timeline */}
+        <div className="relative bg-white rounded-lg p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center space-x-4">
+              <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+              <span className="font-medium text-base">Entry Strategy</span>
+            </div>
+            <div className="flex-1 mx-4">
+              <div className="h-0.5 bg-gradient-to-r from-orange-500 to-orange-300"></div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <span className="font-medium text-base">Exit Strategy</span>
+              <div className="w-3 h-3 rounded-full bg-orange-300"></div>
+            </div>
+          </div>
+
+          {/* Multiple Conditions */}
+          <div className="space-y-6 mb-6">
+            {conditions.map((condition, index) => (
+              <div key={index} className="relative">
+                <div className="flex items-center mb-2">
+                  <div className="w-2 h-2 rounded-full bg-orange-500 mr-2"></div>
+                  <span className="text-sm text-gray-600">
+                    Condition {index + 1}: {index === 0 ? "" : ""}
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  className="w-full p-2.5 border-b border-gray-300 focus:border-b-2 focus:border-orange-500 focus:outline-none"
+                  placeholder={`Type or select keywords to describe your ${index === 0 ? 'entry' : 'additional'} strategy`}
+                  value={condition}
+                  onChange={(e) => handleConditionChange(index, e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Timeframe Buttons */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {timeframes.map((timeframe, index) => (
+              <button
+                key={index}
+                onClick={() => handleTimeframeClick(timeframe)}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-all
+                  ${
+                    selectedTimeframes.includes(timeframe)
+                      ? 'bg-orange-500 text-white'
+                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  }`}
+              >
+                {timeframe}
+              </button>
+            ))}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-3">
             <Button
-              type="submit"
-              className="bg-[#FF8C00] hover:bg-[#FFA500] text-white rounded-full shadow-md px-10 py-3 font-semibold transition-all duration-200"
+              type="button"
+              variant="outline"
+              className="px-6 py-2 border-gray-800 text-gray-800 hover:bg-gray-50"
+            >
+              Test
+            </Button>
+            <Button
+              type="button"
+              onClick={handleAddCondition}
+              className="px-6 py-2 bg-orange-500 text-white hover:bg-orange-600"
               disabled={loading}
             >
-              {loading ? "Submitting..." : "Create Strategy"}
+              Add another condition
+            </Button>
+            <Button
+              type="submit"
+              className="px-6 py-2 bg-orange-500 text-white hover:bg-orange-600"
+              disabled={loading}
+            >
+              Submit
             </Button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
+      
+      {/* Success Popup */}
       {showSuccessPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fadeIn">
           <div className="bg-gradient-to-br from-[#FFF3E0] to-[#FFE0B2] dark:from-[#232326] dark:to-[#18181B] p-10 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform animate-scaleIn text-[#7B2323] dark:text-white border-2 border-[#FF8C00] dark:border-[#FF8C00] relative overflow-hidden">
