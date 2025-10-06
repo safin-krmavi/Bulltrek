@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { formatCurrency } from '@/lib/utils'
+// import { formatCurrency } from '@/lib/utils'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { useUpdatePassword } from '@/hooks/useUpdatePassword'
 import { useBrokerageDetails } from '@/hooks/useBrokerageDetails'
@@ -96,6 +96,10 @@ import { useNavigate } from 'react-router-dom';
 //   });
 // }
 
+import { useInvoices } from '@/hooks/useInvoices';
+import { useReferrals } from '@/hooks/useReferrals';
+import { ChevronLeft, ChevronRight, Copy } from 'lucide-react';
+
 export default function AccountPage() {
   const navigate = useNavigate();
   // State declarations - move selectedSymbol here
@@ -122,6 +126,15 @@ export default function AccountPage() {
   const { isLoading: isIndicatorsLoading } = useIndicators();
   const { isLoading: isActionsLoading } = useIndicatorActions();
   const { isLoading: isValuesLoading } = useIndicatorValues();
+  const { invoices, isLoading: isInvoicesLoading, error: invoicesError, totalAmount, handleDownload } = useInvoices();
+  const { 
+    referralData, 
+    referralHistory, 
+    isLoading: isReferralsLoading, 
+    error: referralsError,
+    currentPage,
+    setCurrentPage
+  } = useReferrals();
 
   // State declarations
   const [showApiModal, setShowApiModal] = useState(false);
@@ -195,11 +208,6 @@ export default function AccountPage() {
   };
 
   // Add missing handler functions
-  const handleDownloadInvoice = (invoiceId: number) => {
-    // Download logic here
-    console.log(`Downloading invoice ${invoiceId}`);
-  };
-
   const handleDeletePlatform = (platformId: number) => {
     // Delete logic here
     console.log(`Deleting platform ${platformId}`);
@@ -388,62 +396,85 @@ export default function AccountPage() {
         </CollapsibleCard>
         {/* Api connect section */}
         <CollapsibleCard
-  title="API Connect"
-  className="col-span-2"
-  action={
-    <Button
-      className="bg-[#FF8C00] text-white hover:bg-[#FFA500] rounded"
-      onClick={e => {
-        e.stopPropagation(); // Prevents toggling the card when clicking the button
-        setShowApiModal(true);
-      }}
-    >
-      <Plus className="w-4 h-4 mr-2" />
-      Add Brokers
-    </Button>
-  }
->
-  <ApiConnect
-    userId={userData?.id?.toString()}
-    showModal={showApiModal}
-    setShowModal={setShowApiModal}
-  />
-</CollapsibleCard>
+            title="API Connect"
+            className="col-span-2"
+            action={
+              <Button
+                className="bg-[#FF8C00] text-white hover:bg-[#FFA500] rounded"
+                onClick={e => {
+                  e.stopPropagation(); // Prevents toggling the card when clicking the button
+                  setShowApiModal(true);
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Brokers
+              </Button>
+            }
+          >
+            <ApiConnect
+              userId={userData?.id?.toString()}
+              showModal={showApiModal}
+              setShowModal={setShowApiModal}
+            />
+          </CollapsibleCard>
       </div>
 
       <div className="grid grid-cols-5 w-full gap-4 ">
-        <CollapsibleCard title="Invoice Details" className='col-span-3 '>
-            <Table>
-            <TableHeader className="dark: text-white">
-                <TableRow>
-                <TableHead>S.No</TableHead>
-                <TableHead>Plan Name</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead  className='w-fit'>Download Invoice</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {[1, 2, 3, 4].map((i) => (
-                <TableRow key={i} className="hover:bg-muted/50">
-                    <TableCell>{i}</TableCell>
-                    <TableCell>Premium</TableCell>
-                    <TableCell>12 July 2024</TableCell>
-                    <TableCell>{formatCurrency(345)}</TableCell>
-                    <TableCell>
-                    <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className='w-fit'
-                        onClick={() => handleDownloadInvoice(i)}
-                    >
-                        <Download className="h-4 w-4" />
-                    </Button>
-                    </TableCell>
-                </TableRow>
-                ))}
-            </TableBody>
-            </Table>
+        <CollapsibleCard title="Invoice Details" className='col-span-3'>
+            {isInvoicesLoading ? (
+              <div className="flex items-center justify-center p-4">
+                <div className="text-center">
+                  <h2 className="text-xl font-semibold">Loading invoices...</h2>
+                </div>
+              </div>
+            ) : invoicesError ? (
+              <div className="text-red-500 p-4">{invoicesError}</div>
+            ) : (
+              <>
+                <div className="flex justify-end mb-4">
+                  <div className="text-sm text-muted-foreground">
+                    Total Amount: <span className="font-medium">{totalAmount}</span>
+                  </div>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Invoice No.</TableHead>
+                      <TableHead>Plan Name</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className='w-fit'>Download</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {invoices.map((invoice) => (
+                      <TableRow key={invoice.id} className="hover:bg-muted/50">
+                        <TableCell>{invoice.invoice_number}</TableCell>
+                        <TableCell>{invoice.plan_name}</TableCell>
+                        <TableCell>{invoice.date}</TableCell>
+                        <TableCell>{invoice.amount}</TableCell>
+                        <TableCell>
+                          <Badge variant={invoice.status === 'paid' ? 'success' : 'warning'}>
+                            {invoice.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className='w-fit'
+                            onClick={() => handleDownload(invoice.id)}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </>
+            )}
         </CollapsibleCard>
 
         <CollapsibleCard title="Platform Details" className='col-span-2'>
@@ -455,65 +486,106 @@ export default function AccountPage() {
       <div className="grid grid-cols-5 w-full gap-4">
 
       <CollapsibleCard title="Referral Settings" className='col-span-3'>
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">Pending Referrals</div>
-              <div className="font-medium">323</div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">Active Referrals</div>
-              <div className="font-medium">500</div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">Payment Option</div>
-              <Select defaultValue="paypal">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="paypal">PayPal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">Email</div>
-              <div className="flex items-center gap-2 max-w-[200px]">
-                <div className="font-medium truncate">{userData.email}</div>
-                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </div>
+        {isReferralsLoading ? (
+          <div className="flex items-center justify-center p-4">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold">Loading referral data...</h2>
             </div>
           </div>
+        ) : referralsError ? (
+          <div className="text-red-500 p-4">{referralsError}</div>
+        ) : (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="space-y-1">
+                <div className="text-sm text-muted-foreground">Pending Referrals</div>
+                <div className="font-medium">{referralData?.statistics.pending_referrals}</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-sm text-muted-foreground">Active Referrals</div>
+                <div className="font-medium">{referralData?.statistics.verified_referrals}</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-sm text-muted-foreground">Total Earnings</div>
+                <div className="font-medium">${referralData?.statistics.total_earnings}</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-sm text-muted-foreground">This Month</div>
+                <div className="font-medium">${referralData?.statistics.this_month_earnings}</div>
+              </div>
+            </div>
 
-          <Table>
-            <TableHeader className="bg-[#4A0D0D] dark:bg-[#3b3b41] text-white">
-              <TableRow>
-                <TableHead>S.No</TableHead>
-                <TableHead>Joined Date</TableHead>
-                <TableHead>Referral Name</TableHead>
-                <TableHead>Account ID</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[1, 2, 3, 4].map((i) => (
-                <TableRow key={i} className="hover:bg-muted/50">
-                  <TableCell>1</TableCell>
-                  <TableCell>12 July 2024</TableCell>
-                  <TableCell>Himesh Raj</TableCell>
-                  <TableCell>123456791</TableCell>
-                  <TableCell>
-                    <Badge variant={i === 3 ? "warning" : "success"}>
-                      {i === 3 ? "Pending" : "Verified"}
-                    </Badge>
-                  </TableCell>
+            <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+              <div className="flex-1 truncate">{referralData?.referral_link}</div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(referralData?.referral_link || '');
+                  toast.success('Referral link copied to clipboard');
+                }}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copy Link
+              </Button>
+            </div>
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>S.No</TableHead>
+                  <TableHead>Joined Date</TableHead>
+                  <TableHead>Referral Name</TableHead>
+                  <TableHead>Account ID</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Earnings</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {referralHistory?.referrals.map((referral) => (
+                  <TableRow key={referral.id}>
+                    <TableCell>{referral.id}</TableCell>
+                    <TableCell>{referral.joined_date}</TableCell>
+                    <TableCell>{referral.referral_name}</TableCell>
+                    <TableCell>{referral.account_id}</TableCell>
+                    <TableCell>
+                      <Badge variant={referral.status === 'Verified' ? 'success' : 'warning'}>
+                        {referral.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>${referral.earnings}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            {referralHistory && (
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Page {currentPage} of {referralHistory.pagination.total_pages}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(referralHistory.pagination.total_pages, prev + 1))}
+                    disabled={currentPage === referralHistory.pagination.total_pages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </CollapsibleCard>
 
       <CollapsibleCard title="Other Settings" className='col-span-2 w-full'>

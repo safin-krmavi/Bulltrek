@@ -9,7 +9,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { AccountDetailsCard } from "@/components/trade/AccountDetailsCard"
+import { TradeConfirmationDialog, StrategyType } from "@/components/trade/trade-confirmation-dialog"
 import { brokerageService } from "@/api/brokerage"
+import { useState, useEffect } from "react"
 
 interface Brokerage {
   id: string;
@@ -18,7 +20,7 @@ interface Brokerage {
 
 interface FormData {
   strategyName: string;
-  type: 'neutral' | 'long' | 'short';
+  type: 'Neutral' | 'Long' | 'Short';
   dataSet: '3D' | '7D' | '30D' | '180D' | '365D';
   lowerLimit: string;
   upperLimit: string;
@@ -38,13 +40,19 @@ export default function SmartGrid() {
   const [selectedApi, setSelectedApi] = React.useState("")
   const [isBrokeragesLoading, setIsBrokeragesLoading] = React.useState(false)
   const [brokerages, setBrokerages] = React.useState<Brokerage[]>([])
-  const [segment, setSegment] = React.useState("")
-  const [pair, setPair] = React.useState("")
+  const [segment, setSegment] = React.useState("Delivery/Spot/Cash")
+  const [pair, setPair] = React.useState("BTCUSDT")
+  
+  // ✅ Added states for confirmation dialog and loading
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [apiError, setApiError] = useState("")
+  const [strategyId, setStrategyId] = useState<string | null>(null) // ✅ Added for ID storage
 
   // Form state
   const [formData, setFormData] = React.useState<FormData>({
     strategyName: "",
-    type: "neutral",
+    type: "Neutral",
     dataSet: "3D",
     lowerLimit: "",
     upperLimit: "",
@@ -58,7 +66,7 @@ export default function SmartGrid() {
   })
 
   // Effect for fetching brokerages
-  React.useEffect(() => {
+  useEffect(() => {
     async function fetchBrokerages() {
       setIsBrokeragesLoading(true)
       try {
@@ -98,33 +106,123 @@ export default function SmartGrid() {
     }))
   }
 
+  // ✅ Updated form submit handler to use TradeConfirmationDialog with ID capture
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setApiError("") // Clear previous errors
 
-    // Validation
+    // ✅ Enhanced validation
+    if (!selectedApi) {
+      setApiError("Please select an API connection")
+      toast.error("Please select an API connection")
+      return
+    }
+
     if (!formData.strategyName.trim()) {
+      setApiError("Strategy name is required")
       toast.error("Strategy name is required")
       return
     }
 
-    if (!formData.lowerLimit || !formData.upperLimit) {
-      toast.error("Limits are required")
+    if (!formData.lowerLimit || !formData.upperLimit || !formData.levels || !formData.investment) {
+      setApiError("Please fill in all required fields")
+      toast.error("Please fill in all required fields")
       return
     }
 
+    // ✅ Validate numeric fields
+    if (isNaN(Number(formData.lowerLimit)) || isNaN(Number(formData.upperLimit)) || 
+        isNaN(Number(formData.levels)) || isNaN(Number(formData.investment))) {
+      setApiError("Please enter valid numeric values")
+      toast.error("Please enter valid numeric values")
+      return
+    }
+
+    setLoading(true)
+    
     try {
-      // Your form submission logic here
-      toast.success("Strategy created successfully")
-      resetForm()
+      // Prepare payload for Smart Grid strategy
+      const payload = {
+        strategy_name: formData.strategyName,
+        api_connection_id: Number(selectedApi),
+        segment,
+        pair,
+        type: formData.type,
+        data_set: formData.dataSet,
+        lower_limit: Number(formData.lowerLimit),
+        upper_limit: Number(formData.upperLimit),
+        levels: Number(formData.levels),
+        profit_per_level_min: formData.profitPerLevelMin ? Number(formData.profitPerLevelMin) : null,
+        profit_per_level_max: formData.profitPerLevelMax ? Number(formData.profitPerLevelMax) : null,
+        investment: Number(formData.investment),
+        minimum_investment: formData.minimumInvestment ? Number(formData.minimumInvestment) : null,
+        stop_grid_loss: formData.stopGridLoss ? Number(formData.stopGridLoss) : null,
+        stop_grid_point: formData.stopGridPoint
+      }
+
+      // Get token and base URL
+      const accessToken = localStorage.getItem("AUTH_TOKEN") || localStorage.getItem("access_token") || 
+                         localStorage.getItem("token") || localStorage.getItem("authToken")
+      const baseUrl = import.meta.env.VITE_API_URL
+
+      if (!baseUrl) {
+        setApiError("API base URL is not configured")
+        toast.error("API base URL is not configured")
+        return
+      }
+
+      if (!accessToken) {
+        setApiError("You are not logged in. Please log in again.")
+        toast.error("You are not logged in. Please log in again.")
+        return
+      }
+
+      const headers = {
+        "Authorization": `Bearer ${accessToken.trim()}`,
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      }
+
+      // API call to create Smart Grid strategy
+      const res = await fetch(`${baseUrl}/smart-grid/create`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload)
+      })
+
+      if (res.status === 201) {
+        // ✅ Get the response data to extract the ID
+        const responseData = await res.json()
+        console.log('Smart Grid creation response:', responseData)
+        
+        // ✅ Store the ID for use in TradeConfirmationDialog
+        const createdStrategyId = responseData.data?.id || responseData.id
+        if (createdStrategyId) {
+          setStrategyId(createdStrategyId.toString())
+        }
+        
+        setShowConfirmation(true)
+        toast.success("Smart Grid strategy created successfully!")
+      } else {
+        const err = await res.json()
+        const errorMessage = err.message || "An error occurred while creating the strategy."
+        setApiError(errorMessage)
+        toast.error(errorMessage)
+      }
     } catch (error: any) {
-      toast.error(error?.message || "Failed to create strategy")
+      const errorMessage = error.message || "Network error occurred. Please try again."
+      setApiError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
+      setLoading(false)
     }
   }
 
+  // ✅ Enhanced reset function
   const resetForm = () => {
     setFormData({
       strategyName: "",
-      type: "neutral",
+      type: "Neutral",
       dataSet: "3D",
       lowerLimit: "",
       upperLimit: "",
@@ -136,10 +234,11 @@ export default function SmartGrid() {
       stopGridLoss: "",
       stopGridPoint: "point-9"
     })
+    setApiError("")
   }
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="h-screen flex flex-col scrollbar-hide overflow-y-scroll">
       <AccountDetailsCard
         selectedApi={selectedApi}
         setSelectedApi={setSelectedApi}
@@ -149,6 +248,7 @@ export default function SmartGrid() {
         setSegment={setSegment}
         pair={pair}
         setPair={setPair}
+        title="Account Details"
       />
       <form onSubmit={handleFormSubmit} className="space-y-4 mt-4 dark:text-white">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -159,14 +259,15 @@ export default function SmartGrid() {
           <CollapsibleContent className="space-y-4 rounded-b-md border border-t-0 p-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                Strategy Name
+                Strategy Name *
                 <span className="text-muted-foreground">ⓘ</span>
               </Label>
               <Input 
                 name="strategyName"
                 value={formData.strategyName}
                 onChange={handleInputChange}
-                placeholder="Enter Name" 
+                placeholder="Enter Name"
+                required 
               />
             </div>
 
@@ -174,23 +275,26 @@ export default function SmartGrid() {
               <Label>Select Type</Label>
               <div className="grid grid-cols-3 gap-2">
                 <Button 
+                  type="button"
                   variant="outline"
-                  onClick={() => handleTypeSelect('neutral')}
-                  className={formData.type === 'neutral' ? 'bg-[#5A2525]' : ''}
+                  onClick={() => handleTypeSelect('Neutral')}
+                  className={`${formData.type === 'Neutral' ? 'bg-[#5A2525] text-white' : ''}`}
                 >
                   Neutral
                 </Button>
                 <Button 
+                  type="button"
                   variant="outline"
-                  onClick={() => handleTypeSelect('long')}
-                  className={formData.type === 'long' ? 'bg-[#5A2525]' : ''}
+                  onClick={() => handleTypeSelect('Long')}
+                  className={`${formData.type === 'Long' ? 'bg-[#5A2525] text-white' : ''}`}
                 >
                   Long
                 </Button>
                 <Button 
+                  type="button"
                   variant="outline"
-                  onClick={() => handleTypeSelect('short')}
-                  className={formData.type === 'short' ? 'bg-[#5A2525]' : ''}
+                  onClick={() => handleTypeSelect('Short')}
+                  className={`${formData.type === 'Short' ? 'bg-[#5A2525] text-white' : ''}`}
                 >
                   Short
                 </Button>
@@ -203,76 +307,52 @@ export default function SmartGrid() {
                 <span className="text-muted-foreground">ⓘ</span>
               </Label>
               <div className="grid grid-cols-5 gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleDataSetSelect('3D')}
-                  className={formData.dataSet === '3D' ? 'bg-[#5A2525]' : ''}
-                >
-                  3D
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleDataSetSelect('7D')}
-                  className={formData.dataSet === '7D' ? 'bg-[#5A2525]' : ''}
-                >
-                  7D
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleDataSetSelect('30D')}
-                  className={formData.dataSet === '30D' ? 'bg-[#5A2525]' : ''}
-                >
-                  30D
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleDataSetSelect('180D')}
-                  className={formData.dataSet === '180D' ? 'bg-[#5A2525]' : ''}
-                >
-                  180D
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleDataSetSelect('365D')}
-                  className={formData.dataSet === '365D' ? 'bg-[#5A2525]' : ''}
-                >
-                  365D
-                </Button>
+                {(['3D', '7D', '30D', '180D', '365D'] as const).map((period) => (
+                  <Button 
+                    key={period}
+                    type="button"
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDataSetSelect(period)}
+                    className={`${formData.dataSet === period ? 'bg-[#5A2525] text-white' : ''}`}
+                  >
+                    {period}
+                  </Button>
+                ))}
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
-                  Lower Limit
+                  Lower Limit *
                   <span className="text-muted-foreground">ⓘ</span>
                 </Label>
                 <div className="flex gap-2">
                   <Input 
                     name="lowerLimit"
+                    type="number"
                     value={formData.lowerLimit}
                     onChange={handleInputChange}
-                    placeholder="Value" 
+                    placeholder="Value"
+                    required 
                   />
                   <div className="w-[100px] rounded-md border px-3 py-2">USTD</div>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
-                  Upper Limit
+                  Upper Limit *
                   <span className="text-muted-foreground">ⓘ</span>
                 </Label>
                 <div className="flex gap-2">
                   <Input 
                     name="upperLimit"
+                    type="number"
                     value={formData.upperLimit}
                     onChange={handleInputChange}
-                    placeholder="Value" 
+                    placeholder="Value"
+                    required 
                   />
                   <div className="w-[100px] rounded-md border px-3 py-2">USTD</div>
                 </div>
@@ -280,12 +360,14 @@ export default function SmartGrid() {
             </div>
 
             <div className="space-y-2">
-              <Label>Levels</Label>
+              <Label>Levels *</Label>
               <Input 
                 name="levels"
+                type="number"
                 value={formData.levels}
                 onChange={handleInputChange}
-                placeholder="Value" 
+                placeholder="Value"
+                required 
               />
             </div>
 
@@ -298,18 +380,20 @@ export default function SmartGrid() {
                 <div className="relative">
                   <Input 
                     name="profitPerLevelMin"
+                    type="number"
                     value={formData.profitPerLevelMin}
                     onChange={handleInputChange}
-                    placeholder="Value" 
+                    placeholder="Min Value" 
                   />
                   <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
                 </div>
                 <div className="relative">
                   <Input 
                     name="profitPerLevelMax"
+                    type="number"
                     value={formData.profitPerLevelMax}
                     onChange={handleInputChange}
-                    placeholder="Value" 
+                    placeholder="Max Value" 
                   />
                   <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
                 </div>
@@ -318,29 +402,35 @@ export default function SmartGrid() {
 
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                Investment
+                Investment *
                 <span className="text-muted-foreground">ⓘ</span>
               </Label>
               <div className="flex gap-2">
                 <Input 
                   name="investment"
+                  type="number"
                   value={formData.investment}
                   onChange={handleInputChange}
-                  placeholder="Value" 
+                  placeholder="Value"
+                  required 
                 />
                 <div className="w-[100px] rounded-md border px-3 py-2">USTD</div>
               </div>
+              <p className="text-sm text-orange-500">Avbl: 389 USTD</p>
             </div>
 
             <div className="space-y-2">
               <Label>Minimum Investment</Label>
               <Input 
                 name="minimumInvestment"
+                type="number"
                 value={formData.minimumInvestment}
                 onChange={handleInputChange}
                 placeholder="Value" 
               />
             </div>
+
+            <p className="text-sm text-green-500">Estimated Net PnL of trade: + 88 Value</p>
           </CollapsibleContent>
         </Collapsible>
 
@@ -355,18 +445,17 @@ export default function SmartGrid() {
               <div className="flex gap-2">
                 <Input 
                   name="stopGridLoss"
+                  type="number"
                   value={formData.stopGridLoss}
                   onChange={handleInputChange}
                   placeholder="Numeric Value" 
                 />
                 <Select 
-                  name="stopGridPoint"
                   value={formData.stopGridPoint}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, stopGridPoint: value }))}
-                  defaultValue="point-9"
                 >
                   <SelectTrigger className="w-[120px]">
-                    <SelectValue placeholder="Point 9" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="point-9">Point 9</SelectItem>
@@ -379,12 +468,20 @@ export default function SmartGrid() {
           </CollapsibleContent>
         </Collapsible>
 
+        {/* ✅ Error display */}
+        {apiError && (
+          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm">
+            {apiError}
+          </div>
+        )}
+
         <div className="flex gap-4">
           <Button 
             type="submit" 
             className="flex-1 bg-[#4A1515] hover:bg-[#5A2525]"
+            disabled={loading || !selectedApi}
           >
-            Proceed
+            {loading ? "Processing..." : "Proceed"}
           </Button>
           <Button 
             type="button"
@@ -396,6 +493,16 @@ export default function SmartGrid() {
           </Button>
         </div>
       </form>
+
+      {/* ✅ Updated: Pass the captured strategy ID */}
+      <TradeConfirmationDialog
+        isOpen={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        selectedApi={selectedApi}
+        selectedBot={null}
+        strategyType={StrategyType.SMART_GRID}
+        strategyId={strategyId || undefined}
+      />
     </div>
   )
 }

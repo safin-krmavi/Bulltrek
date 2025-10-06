@@ -172,7 +172,7 @@ export default function IndyUTC() {
 
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
-      <div className="w-full max-w-md mx-auto">
+      <div className="h-screen flex flex-col scrollbar-hide overflow-y-scroll">
         <AccountDetailsCard
           selectedApi={selectedApi}
           setSelectedApi={setSelectedApi}

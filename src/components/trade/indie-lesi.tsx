@@ -12,11 +12,10 @@ import { AccountDetailsCard } from "@/components/trade/AccountDetailsCard"
 import { brokerageService } from "@/api/brokerage"
 import { CheckedState } from "@radix-ui/react-checkbox"
 
-// Define types
+
 interface Brokerage {
   id: string;
   name: string;
-  // Add other brokerage properties as needed
 }
 
 interface FormData {
@@ -33,7 +32,6 @@ interface FormData {
 }
 
 export default function IndyLESI() {
-  // Main states
   const [isOpen, setIsOpen] = React.useState(true)
   const [isAdvancedOpen, setIsAdvancedOpen] = React.useState(false)
   const [selectedApi, setSelectedApi] = React.useState("")
@@ -42,7 +40,6 @@ export default function IndyLESI() {
   const [segment, setSegment] = React.useState("")
   const [pair, setPair] = React.useState("")
 
-  // Form state
   const [formData, setFormData] = React.useState<FormData>({
     strategyName: "",
     investment: "",
@@ -56,7 +53,6 @@ export default function IndyLESI() {
     stopLossBy: ""
   })
 
-  // Advanced settings state
   const [lcEnabled, setLcEnabled] = React.useState(false)
   const [emaEnabled, setEmaEnabled] = React.useState(false)
   const [larsiEnabled, setLarsiEnabled] = React.useState(false)
@@ -87,7 +83,6 @@ export default function IndyLESI() {
 
   const handleSubmit = React.useCallback((e: React.FormEvent) => {
     e.preventDefault()
-    // Add form submission logic here
     console.log('Form data:', formData)
   }, [formData])
 
@@ -122,55 +117,52 @@ export default function IndyLESI() {
   }, [])
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <AccountDetailsCard
-        selectedApi={selectedApi}
-        setSelectedApi={setSelectedApi}
-        isBrokeragesLoading={isBrokeragesLoading}
-        brokerages={brokerages}
-        segment={segment}
-        setSegment={setSegment}
-        pair={pair}
-        setPair={setPair}
-      />
-      <form onSubmit={handleSubmit} className="space-y-4 mt-4 dark:text-white ">
-        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <CollapsibleTrigger className="flex w-full items-center  border border-t-0 justify-between rounded-t-md bg-[#4A1515] p-4 font-medium text-white hover:bg-[#5A2525]">
-            <span>Indy LESI</span>
-            <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 rounded-b-md border border-t-0 p-4">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                Strategy Name
-                <span className="text-muted-foreground">ⓘ</span>
-              </Label>
-              <Input 
-                name="strategyName"
-                value={formData.strategyName}
-                onChange={handleInputChange}
-                placeholder="Enter Name" 
-              />
-            </div>
+    <div className="h-screen flex flex-col scrollbar-hide overflow-y-scroll">
+        <div className="w-full max-w-md mx-auto">
+          <AccountDetailsCard
+            selectedApi={selectedApi}
+            setSelectedApi={setSelectedApi}
+            isBrokeragesLoading={isBrokeragesLoading}
+            brokerages={brokerages}
+            segment={segment}
+            setSegment={setSegment}
+            pair={pair}
+            setPair={setPair}
+          />
 
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                Investment
-                <span className="text-muted-foreground">ⓘ</span>
-              </Label>
-              <div className="flex gap-2">
-                <Input 
-                  name="investment"
-                  value={formData.investment}
-                  onChange={handleInputChange}
-                  placeholder="Value" 
-                />
-                <div className="w-[100px] rounded-md border px-3 py-2">USTD</div>
-              </div>
-              <p className="text-sm text-orange-500">Avbl: 389 USTD</p>
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-4 mt-4 dark:text-white">
+            {/* === Indy LESI Section === */}
+            <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+              <CollapsibleTrigger className="flex w-full items-center border border-t-0 justify-between rounded-t-md bg-[#4A1515] p-4 font-medium text-white hover:bg-[#5A2525]">
+                <span>Indy LESI</span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-4 rounded-b-md border border-t-0 p-4">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">Strategy Name</Label>
+                  <Input 
+                    name="strategyName"
+                    value={formData.strategyName}
+                    onChange={handleInputChange}
+                    placeholder="Enter Name" 
+                  />
+                </div>
 
-            <div className="space-y-2">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">Investment</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      name="investment"
+                      value={formData.investment}
+                      onChange={handleInputChange}
+                      placeholder="Value" 
+                    />
+                    <div className="w-[100px] rounded-md border px-3 py-2">USTD</div>
+                  </div>
+                  <p className="text-sm text-orange-500">Avbl: 389 USTD</p>
+                </div>
+
+                <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Investment CAP
                 <span className="text-muted-foreground">ⓘ</span>
@@ -283,16 +275,18 @@ export default function IndyLESI() {
                 <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
               </div>
             </div>
-          </CollapsibleContent>
-        </Collapsible>
 
-        <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
-          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-t-md bg-[#4A1515] p-4 font-medium text-white hover:bg-[#5A2525] border border-t-0">
-            <span>Advanced Settings</span>
-            <ChevronDown className={`h-4 w-4 transition-transform ${isAdvancedOpen ? "rotate-180" : ""}`} />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-6 rounded-b-md border border-t-0 p-4">
-            <div className="space-y-4">
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* === Advanced Settings === */}
+            <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
+              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-t-md bg-[#4A1515] p-4 font-medium text-white hover:bg-[#5A2525] border border-t-0">
+                <span>Advanced Settings</span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isAdvancedOpen ? "rotate-180" : ""}`}/>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-6 rounded-b-md border border-t-0 p-4">
+                <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <Checkbox 
                   id="lc" 
@@ -379,21 +373,22 @@ export default function IndyLESI() {
                 </div>
               </div>
             </div>
-          </CollapsibleContent>
-        </Collapsible>
+              </CollapsibleContent>
+            </Collapsible>
 
-        <div className="flex gap-4">
-          <Button type="submit" className="flex-1 bg-[#4A1515] hover:bg-[#5A2525]">Proceed</Button>
-          <Button 
-            type="button" 
-            variant="outline" 
-            className="flex-1 bg-[#D97706] text-white hover:bg-[#B45309]"
-            onClick={handleReset}
-          >
-            Reset
-          </Button>
+            <div className="flex gap-4">
+              <Button type="submit" className="flex-1 bg-[#4A1515] hover:bg-[#5A2525]">Proceed</Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="flex-1 bg-[#D97706] text-white hover:bg-[#B45309]"
+                onClick={handleReset}
+              >
+                Reset
+              </Button>
+            </div>
+          </form>
         </div>
-      </form>
     </div>
   )
 }
