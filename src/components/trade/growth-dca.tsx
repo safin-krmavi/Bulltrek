@@ -13,6 +13,8 @@ import { useEffect, useState } from "react"
 import { BrokerageConnection, brokerageService } from "@/api/brokerage"
 // import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { AccountDetailsCard } from "./AccountDetailsCard"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { DurationTooltip } from "@/components/ui/duration-tooltip"
 
 export default function GrowthDCA() {
   const [isOpen, setIsOpen] = React.useState(true)
@@ -31,6 +33,13 @@ export default function GrowthDCA() {
   const [investmentCurrency, setInvestmentCurrency] = useState("USTD");
   const [investmentCap, setInvestmentCap] = useState("");
   const [duration, setDuration] = useState("");
+  const [durationDetails, setDurationDetails] = React.useState<{
+    type: string;
+    time?: string;
+    amPm?: string;
+    date?: string;
+    hours?: string;
+  }>({ type: "" });
   const [segment, setSegment] = useState("Delivery/Spot/Cash");
   const [bookProfitBy, setBookProfitBy] = useState("");
   const [priceTriggerStart, setPriceTriggerStart] = useState("");
@@ -136,6 +145,15 @@ export default function GrowthDCA() {
     }
   };
 
+  const [selectedTime, setSelectedTime] = useState("12:00");
+  const [selectedAmPm, setSelectedAmPm] = useState("AM");
+  const [selectedDate, setSelectedDate] = useState("1");
+  const [hourlyStartTime, setHourlyStartTime] = useState("00:00");
+  const [hourlyAmPm, setHourlyAmPm] = useState("AM");
+  const [hours, setHours] = useState("");
+  // const [monthlyTime, setMonthlyTime] = useState("12:00");
+  // const [monthlyAmPm, setMonthlyAmPm] = useState("AM");
+
   return (
     <div className="h-screen flex flex-col scrollbar-hide overflow-y-scroll">
       <AccountDetailsCard
@@ -158,7 +176,16 @@ export default function GrowthDCA() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Strategy Name
-                <span className="text-muted-foreground">ⓘ</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="text-muted-foreground">ⓘ</span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#ECE7E7] text-gray-900 p-2 rounded-md shadow-2xl max-w-[200px] text-wrap">
+                      <p>You can keep desired Strategy Name for reference and reports</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </Label>
               <Input placeholder="Enter Name" value={strategyName} onChange={e => setStrategyName(e.target.value)} />
             </div>
@@ -166,7 +193,16 @@ export default function GrowthDCA() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Investment
-                <span className="text-muted-foreground">ⓘ</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="text-muted-foreground">ⓘ</span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#ECE7E7] text-gray-900 p-2 rounded-md shadow-2xl max-w-[200px] text-wrap">
+                      <p>Invest Per trade</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </Label>
               <div className="flex gap-2">
                 <Input placeholder="Value" value={investmentAmount} onChange={e => setInvestmentAmount(e.target.value)} />
@@ -185,7 +221,16 @@ export default function GrowthDCA() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Investment CAP
-                <span className="text-muted-foreground">ⓘ</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="text-muted-foreground">ⓘ</span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#ECE7E7] text-gray-900 p-2 rounded-md shadow-2xl max-w-[600px] text-wrap">
+                      <p>Strategy Stops when Total Investment of the strategy is equal to Cap Value</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </Label>
               <div className="flex gap-2">
                 <Input placeholder="Value" value={investmentCap} onChange={e => setInvestmentCap(e.target.value)} />
@@ -200,28 +245,141 @@ export default function GrowthDCA() {
               </div>
             </div>
 
-            <div className="space-y-2">
+                       <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Duration
-                <span className="text-muted-foreground">ⓘ</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="text-muted-foreground">ⓘ</span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#ECE7E7] text-gray-900 p-2 rounded-md shadow-2xl max-w-[200px] text-wrap">
+                      <p>Please Select the Recurring Duration of the Strategy</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </Label>
-              <Select value={duration} onValueChange={setDuration}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Daily">Daily</SelectItem>
-                  <SelectItem value="Weekly">Weekly</SelectItem>
-                  <SelectItem value="Monthly">Monthly</SelectItem>
-                  <SelectItem value="Hourly">Hourly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="flex gap-2">
+                <DurationTooltip
+  type="Daily"
+  onTimeChange={setSelectedTime}
+  onHourlyStartTimeChange={setHourlyStartTime}
+  onAmPmChange={setHourlyAmPm}
+  defaultTime={durationDetails.time || selectedTime}
+  defaultAmPm={durationDetails.amPm || selectedAmPm}
+  isSelected={duration.startsWith("")}
+  onSelectionComplete={(data) => {
+    setDurationDetails(data);
+    setDuration(`${data.time || "12:00"} ${data.amPm || "AM"}`);
+  }}
+>
+  <Button
+    type="button"
+    variant={duration.startsWith("Daily") ? "default" : "outline"}
+    onClick={() => {
+      setDuration("Daily");
+      setDurationDetails({ type: "Daily", time: selectedTime, amPm: selectedAmPm });
+    }}
+    className={duration.startsWith("Daily") ? "bg-[#cabcbc] hover:bg-[#cabcbc]" : ""}
+  >
+    {duration.startsWith("Daily") ? duration : "Daily"}
+  </Button>
+</DurationTooltip>
 
+                <DurationTooltip
+  type="Weekly"
+  onTimeChange={setSelectedTime}
+  onHourlyStartTimeChange={setHourlyStartTime}
+  onAmPmChange={setSelectedAmPm}
+  defaultTime={durationDetails.time || selectedTime}
+  defaultAmPm={durationDetails.amPm || selectedAmPm}
+  isSelected={duration.startsWith("Weekly")}
+  onSelectionComplete={(data) => {
+    setDurationDetails(data);
+    setDuration(`${data.time || "12:00"} ${data.amPm || "AM"}`);
+  }}
+>
+  <Button
+    type="button"
+    variant={duration.startsWith("Weekly") ? "default" : "outline"}
+    onClick={() => {
+      setDuration("Weekly");
+      setDurationDetails({ type: "Weekly", time: selectedTime, amPm: selectedAmPm });
+    }}
+    className={duration.startsWith("Weekly") ? "bg-[#cabcbc] hover:bg-[#cabcbc]" : ""}
+  >
+    {duration.startsWith("Weekly") ? duration : "Weekly"}
+  </Button>
+</DurationTooltip>
+
+                <DurationTooltip
+  type="Monthly"
+  onTimeChange={setSelectedTime}
+  onHourlyStartTimeChange={setHourlyStartTime}
+  onAmPmChange={setSelectedAmPm}
+  onDateChange={setSelectedDate}
+  defaultTime={durationDetails.time || selectedTime}
+  defaultAmPm={durationDetails.amPm || selectedAmPm}
+  selectedDate={durationDetails.date || selectedDate}
+  isSelected={duration.startsWith("Monthly")}
+  onSelectionComplete={(data) => {
+    setDurationDetails(data);
+    setDuration(`${data.date || "1"}, ${data.time || "12:00"} ${data.amPm || "AM"}`);
+  }}
+>
+  <Button
+    type="button"
+    variant={duration.startsWith("Monthly") ? "default" : "outline"}
+    onClick={() => {
+      setDuration("Monthly");
+      setDurationDetails({ type: "Monthly", time: selectedTime, amPm: selectedAmPm, date: selectedDate });
+    }}
+    className={duration.startsWith("Monthly") ? "bg-[#cabcbc] hover:bg-[#cabcbc]" : ""}
+  >
+    {duration.startsWith("Monthly") ? duration : "Monthly"}
+  </Button>
+</DurationTooltip>
+
+               <DurationTooltip
+  type="Hourly"
+  onTimeChange={setHours}
+  onHourlyStartTimeChange={setHourlyStartTime}
+  onAmPmChange={setHourlyAmPm}
+  defaultTime={durationDetails.time || hourlyStartTime}
+  defaultAmPm={durationDetails.amPm || hourlyAmPm}                  
+  isSelected={duration.startsWith("Hourly")}
+  onSelectionComplete={(data) => {
+    setDurationDetails(data);
+    setDuration(`${data.hours || "1"}h, ${data.time || "00:00"} ${data.amPm || "AM"}`);
+  }}
+>
+  <Button
+    type="button"
+    variant={duration.startsWith("Hourly") ? "default" : "outline"}
+    onClick={() => {
+      setDuration("Hourly");
+      setDurationDetails({ type: "Hourly", hours: hours, time: hourlyStartTime, amPm: hourlyAmPm });
+    }}
+    className={duration.startsWith("Hourly") ? "bg-[#cabcbc] hover:bg-[#cabcbc]" : ""}
+  >
+    {duration.startsWith("Hourly") ? duration : "Hourly"}
+  </Button>
+</DurationTooltip>
+              </div>
+            </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Book Profit By
-                <span className="text-muted-foreground">ⓘ</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="text-muted-foreground">ⓘ</span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#ECE7E7] text-gray-900 p-2 rounded-md shadow-2xl max-w-[200px] text-wrap">
+                      <p className="text-sm whitespace-normal">If You wish to book profit by percentage based on buy price. Please Make sure to check your Transaction fees on respective exchange</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </Label>
               <div className="relative">
                 <Input
@@ -352,6 +510,7 @@ export default function GrowthDCA() {
             setInvestmentCurrency("USTD");
             setInvestmentCap("");
             setDuration("");
+            setDurationDetails({ type: "" });
             setSegment("Delivery/Spot/Cash");
             setBookProfitBy("");
             setPriceTriggerStart("");

@@ -12,6 +12,7 @@ import { AccountDetailsCard } from "@/components/trade/AccountDetailsCard"
 import { TradeConfirmationDialog, StrategyType } from "@/components/trade/trade-confirmation-dialog"
 import { brokerageService } from "@/api/brokerage"
 import { useState, useEffect } from "react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@radix-ui/react-tooltip"
 
 interface Brokerage {
   id: string;
@@ -260,7 +261,16 @@ export default function SmartGrid() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Strategy Name *
-                <span className="text-muted-foreground">ⓘ</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="text-muted-foreground">ⓘ</span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#ECE7E7] text-gray-900 p-2 rounded-md shadow-2xl max-w-[200px] text-wrap">
+                      <p>You can keep desired Strategy Name for reference and reports</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>  
               </Label>
               <Input 
                 name="strategyName"
@@ -304,7 +314,16 @@ export default function SmartGrid() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Data Set
-                <span className="text-muted-foreground">ⓘ</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="text-muted-foreground">ⓘ</span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#ECE7E7] text-gray-900 p-2 rounded-md shadow-2xl max-w-[200px] text-wrap">
+                      <p>Please Select the Timeframe of Historical data to determine the price range</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </Label>
               <div className="grid grid-cols-5 gap-2">
                 {(['3D', '7D', '30D', '180D', '365D'] as const).map((period) => (
@@ -326,7 +345,16 @@ export default function SmartGrid() {
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   Lower Limit *
-                  <span className="text-muted-foreground">ⓘ</span>
+                  <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="text-muted-foreground">ⓘ</span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#ECE7E7] text-gray-900 p-2 rounded-md shadow-2xl max-w-[200px] text-wrap">
+                      <p>Set the Lowest/Starting Price range</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 </Label>
                 <div className="flex gap-2">
                   <Input 
@@ -343,7 +371,16 @@ export default function SmartGrid() {
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   Upper Limit *
-                  <span className="text-muted-foreground">ⓘ</span>
+                   <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="text-muted-foreground">ⓘ</span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#ECE7E7] text-gray-900 p-2 rounded-md shadow-2xl max-w-[200px] text-wrap">
+                      <p>Set the Maximum/Ending Price range</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 </Label>
                 <div className="flex gap-2">
                   <Input 
@@ -374,7 +411,16 @@ export default function SmartGrid() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Profit per Level
-                <span className="text-muted-foreground">ⓘ</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="text-muted-foreground">ⓘ</span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#ECE7E7] text-gray-900 p-2 rounded-md shadow-2xl max-w-[200px] text-wrap">
+                      <p>Estimate Net Profit Per Grid Level Trade</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </Label>
               <div className="grid grid-cols-2 gap-4">
                 <div className="relative">
@@ -403,7 +449,16 @@ export default function SmartGrid() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Investment *
-                <span className="text-muted-foreground">ⓘ</span>
+               <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="text-muted-foreground">ⓘ</span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#ECE7E7] text-gray-900 p-2 rounded-md shadow-2xl max-w-[200px] text-wrap">
+                      <p>Invest Per trade</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </Label>
               <div className="flex gap-2">
                 <Input 

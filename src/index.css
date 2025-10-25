@@ -47,7 +47,15 @@ body{
     opacity: 1;
   }
 }
+/* Add smooth scrolling and hide scrollbar */
+.overflow-y-auto {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
 
+.overflow-y-auto::-webkit-scrollbar {
+  display: none;
+}
 @keyframes subtlePulse {
   0%, 100% {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);

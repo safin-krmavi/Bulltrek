@@ -78,9 +78,12 @@ export const HeaderDropdown: React.FC<{
             <button
               key={option.value}
               className="block w-full text-left px-4 py-2 text-sm hover:bg-secondary/80 focus:bg-secondary/80 transition-colors text-secondary-foreground dark:text-white first:rounded-t-md last:rounded-b-md"
-              onMouseDown={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 navigate(option.value);
                 setSelectedValue && setSelectedValue(option.value);
+                setOpen(false);
               }}
               tabIndex={-1}
             >
@@ -99,7 +102,10 @@ const Header: React.FC = () => {
   const { hasUnreadNotifications} = useNotifications();
 
   const handleSelectChange = (path: string) => {
-    navigate(path);
+    // Prevent default navigation behavior
+    if (path) {
+      navigate(path);
+    }
   };
 
   return (
