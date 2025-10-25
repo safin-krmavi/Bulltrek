@@ -262,109 +262,165 @@ export default function GrowthDCA() {
               <div className="flex gap-2">
                 <DurationTooltip
   type="Daily"
-  onTimeChange={setSelectedTime}
+  onTimeChange={(time) => {
+    setSelectedTime(time);
+    const value = `${time} ${selectedAmPm}`;
+    setDuration(`Daily ${value}`);
+    setDurationDetails({ type: "Daily", time: time, amPm: selectedAmPm });
+  }}
   onHourlyStartTimeChange={setHourlyStartTime}
-  onAmPmChange={setHourlyAmPm}
-  defaultTime={durationDetails.time || selectedTime}
-  defaultAmPm={durationDetails.amPm || selectedAmPm}
-  isSelected={duration.startsWith("")}
+  onAmPmChange={(amPm) => {
+    setSelectedAmPm(amPm);
+    const value = `${selectedTime} ${amPm}`;
+    setDuration(`Daily ${value}`);
+    setDurationDetails({ type: "Daily", time: selectedTime, amPm: amPm });
+  }}
+  defaultTime={durationDetails.type === "Daily" ? durationDetails.time : selectedTime}
+  defaultAmPm={durationDetails.type === "Daily" ? durationDetails.amPm : selectedAmPm}
+  isSelected={duration.startsWith("Daily")}
   onSelectionComplete={(data) => {
-    setDurationDetails(data);
-    setDuration(`${data.time || "12:00"} ${data.amPm || "AM"}`);
+    setDurationDetails({ ...data, type: "Daily" });
+    const value = `${data.time || selectedTime} ${data.amPm || selectedAmPm}`;
+    setDuration(`Daily ${value}`);
   }}
 >
   <Button
     type="button"
     variant={duration.startsWith("Daily") ? "default" : "outline"}
     onClick={() => {
-      setDuration("Daily");
+      const value = `${selectedTime} ${selectedAmPm}`;
+      setDuration(`Daily ${value}`);
       setDurationDetails({ type: "Daily", time: selectedTime, amPm: selectedAmPm });
     }}
     className={duration.startsWith("Daily") ? "bg-[#cabcbc] hover:bg-[#cabcbc]" : ""}
   >
-    {duration.startsWith("Daily") ? duration : "Daily"}
+    {duration.startsWith("Daily") ? duration.replace("Daily", "").trim() : "Daily"}
   </Button>
-</DurationTooltip>
+</DurationTooltip>                                <DurationTooltip
+                  type="Weekly"
+                  onTimeChange={(time) => {
+                    setSelectedTime(time);
+                    const value = `${time} ${selectedAmPm}`;
+                    setDuration(`Weekly ${value}`);
+                    setDurationDetails({ type: "Weekly", time: time, amPm: selectedAmPm });
+                  }}
+                  onHourlyStartTimeChange={setHourlyStartTime}
+                  onAmPmChange={(amPm) => {
+                    setSelectedAmPm(amPm);
+                    const value = `${selectedTime} ${amPm}`;
+                    setDuration(`Weekly ${value}`);
+                    setDurationDetails({ type: "Weekly", time: selectedTime, amPm: amPm });
+                  }}
+                  defaultTime={durationDetails.type === "Weekly" ? durationDetails.time : selectedTime}
+                  defaultAmPm={durationDetails.type === "Weekly" ? durationDetails.amPm : selectedAmPm}
+                  isSelected={duration.startsWith("Weekly")}
+                  onSelectionComplete={(data) => {
+                    setDurationDetails({ ...data, type: "Weekly" });
+                    const value = `${data.time || selectedTime} ${data.amPm || selectedAmPm}`;
+                    setDuration(`Weekly ${value}`);
+                  }}
+                >
+                  <Button
+                    type="button"
+                    variant={duration.startsWith("Weekly") ? "default" : "outline"}
+                    onClick={() => {
+                      const value = `${selectedTime} ${selectedAmPm}`;
+                      setDuration(`Weekly ${value}`);
+                      setDurationDetails({ type: "Weekly", time: selectedTime, amPm: selectedAmPm });
+                    }}
+                    className={duration.startsWith("Weekly") ? "bg-[#cabcbc] hover:bg-[#cabcbc]" : ""}
+                  >
+                    {duration.startsWith("Weekly") ? duration.replace("Weekly", "").trim() : "Weekly"}
+                  </Button>
+                </DurationTooltip>
 
-                <DurationTooltip
-  type="Weekly"
-  onTimeChange={setSelectedTime}
-  onHourlyStartTimeChange={setHourlyStartTime}
-  onAmPmChange={setSelectedAmPm}
-  defaultTime={durationDetails.time || selectedTime}
-  defaultAmPm={durationDetails.amPm || selectedAmPm}
-  isSelected={duration.startsWith("Weekly")}
-  onSelectionComplete={(data) => {
-    setDurationDetails(data);
-    setDuration(`${data.time || "12:00"} ${data.amPm || "AM"}`);
-  }}
->
-  <Button
-    type="button"
-    variant={duration.startsWith("Weekly") ? "default" : "outline"}
-    onClick={() => {
-      setDuration("Weekly");
-      setDurationDetails({ type: "Weekly", time: selectedTime, amPm: selectedAmPm });
-    }}
-    className={duration.startsWith("Weekly") ? "bg-[#cabcbc] hover:bg-[#cabcbc]" : ""}
-  >
-    {duration.startsWith("Weekly") ? duration : "Weekly"}
-  </Button>
-</DurationTooltip>
+                                <DurationTooltip
+                  type="Monthly"
+                  onTimeChange={(time) => {
+                    setSelectedTime(time);
+                    const value = `${selectedDate}, ${time} ${selectedAmPm}`;
+                    setDuration(`Monthly ${value}`);
+                    setDurationDetails({ type: "Monthly", time, amPm: selectedAmPm, date: selectedDate });
+                  }}
+                  onHourlyStartTimeChange={setHourlyStartTime}
+                  onAmPmChange={(amPm) => {
+                    setSelectedAmPm(amPm);
+                    const value = `${selectedDate}, ${selectedTime} ${amPm}`;
+                    setDuration(`Monthly ${value}`);
+                    setDurationDetails({ type: "Monthly", time: selectedTime, amPm, date: selectedDate });
+                  }}
+                  onDateChange={(date) => {
+                    setSelectedDate(date);
+                    const value = `${date}, ${selectedTime} ${selectedAmPm}`;
+                    setDuration(`Monthly ${value}`);
+                    setDurationDetails({ type: "Monthly", time: selectedTime, amPm: selectedAmPm, date });
+                  }}
+                  defaultTime={durationDetails.type === "Monthly" ? durationDetails.time : selectedTime}
+                  defaultAmPm={durationDetails.type === "Monthly" ? durationDetails.amPm : selectedAmPm}
+                  selectedDate={durationDetails.type === "Monthly" ? durationDetails.date : selectedDate}
+                  isSelected={duration.startsWith("Monthly")}
+                  onSelectionComplete={(data) => {
+                    setDurationDetails({ ...data, type: "Monthly" });
+                    const value = `${data.date || selectedDate}, ${data.time || selectedTime} ${data.amPm || selectedAmPm}`;
+                    setDuration(`Monthly ${value}`);
+                  }}
+                >
+                  <Button
+                    type="button"
+                    variant={duration.startsWith("Monthly") ? "default" : "outline"}
+                    onClick={() => {
+                      const value = `${selectedDate}, ${selectedTime} ${selectedAmPm}`;
+                      setDuration(`Monthly ${value}`);
+                      setDurationDetails({ type: "Monthly", time: selectedTime, amPm: selectedAmPm, date: selectedDate });
+                    }}
+                    className={duration.startsWith("Monthly") ? "bg-[#cabcbc] hover:bg-[#cabcbc]" : ""}
+                  >
+                    {duration.startsWith("Monthly") ? duration.replace("Monthly", "").trim() : "Monthly"}
+                  </Button>
+                </DurationTooltip>
 
-                <DurationTooltip
-  type="Monthly"
-  onTimeChange={setSelectedTime}
-  onHourlyStartTimeChange={setHourlyStartTime}
-  onAmPmChange={setSelectedAmPm}
-  onDateChange={setSelectedDate}
-  defaultTime={durationDetails.time || selectedTime}
-  defaultAmPm={durationDetails.amPm || selectedAmPm}
-  selectedDate={durationDetails.date || selectedDate}
-  isSelected={duration.startsWith("Monthly")}
-  onSelectionComplete={(data) => {
-    setDurationDetails(data);
-    setDuration(`${data.date || "1"}, ${data.time || "12:00"} ${data.amPm || "AM"}`);
-  }}
->
-  <Button
-    type="button"
-    variant={duration.startsWith("Monthly") ? "default" : "outline"}
-    onClick={() => {
-      setDuration("Monthly");
-      setDurationDetails({ type: "Monthly", time: selectedTime, amPm: selectedAmPm, date: selectedDate });
-    }}
-    className={duration.startsWith("Monthly") ? "bg-[#cabcbc] hover:bg-[#cabcbc]" : ""}
-  >
-    {duration.startsWith("Monthly") ? duration : "Monthly"}
-  </Button>
-</DurationTooltip>
-
-               <DurationTooltip
-  type="Hourly"
-  onTimeChange={setHours}
-  onHourlyStartTimeChange={setHourlyStartTime}
-  onAmPmChange={setHourlyAmPm}
-  defaultTime={durationDetails.time || hourlyStartTime}
-  defaultAmPm={durationDetails.amPm || hourlyAmPm}                  
-  isSelected={duration.startsWith("Hourly")}
-  onSelectionComplete={(data) => {
-    setDurationDetails(data);
-    setDuration(`${data.hours || "1"}h, ${data.time || "00:00"} ${data.amPm || "AM"}`);
-  }}
->
-  <Button
-    type="button"
-    variant={duration.startsWith("Hourly") ? "default" : "outline"}
-    onClick={() => {
-      setDuration("Hourly");
-      setDurationDetails({ type: "Hourly", hours: hours, time: hourlyStartTime, amPm: hourlyAmPm });
-    }}
-    className={duration.startsWith("Hourly") ? "bg-[#cabcbc] hover:bg-[#cabcbc]" : ""}
-  >
-    {duration.startsWith("Hourly") ? duration : "Hourly"}
-  </Button>
-</DurationTooltip>
+                              <DurationTooltip
+                  type="Hourly"
+                  onTimeChange={(value) => {
+                    setHours(value);
+                    const displayValue = `${value}h, ${hourlyStartTime} ${hourlyAmPm}`;
+                    setDuration(`Hourly ${displayValue}`);
+                    setDurationDetails({ type: "Hourly", hours: value, time: hourlyStartTime, amPm: hourlyAmPm });
+                  }}
+                  onHourlyStartTimeChange={(time) => {
+                    setHourlyStartTime(time);
+                    const displayValue = `${hours || "1"}h, ${time} ${hourlyAmPm}`;
+                    setDuration(`Hourly ${displayValue}`);
+                    setDurationDetails({ type: "Hourly", hours, time, amPm: hourlyAmPm });
+                  }}
+                  onAmPmChange={(amPm) => {
+                    setHourlyAmPm(amPm);
+                    const displayValue = `${hours || "1"}h, ${hourlyStartTime} ${amPm}`;
+                    setDuration(`Hourly ${displayValue}`);
+                    setDurationDetails({ type: "Hourly", hours, time: hourlyStartTime, amPm });
+                  }}
+                  defaultTime={durationDetails.type === "Hourly" ? durationDetails.time : hourlyStartTime}
+                  defaultAmPm={durationDetails.type === "Hourly" ? durationDetails.amPm : hourlyAmPm}                  
+                  isSelected={duration.startsWith("Hourly")}
+                  onSelectionComplete={(data) => {
+                    setDurationDetails({ ...data, type: "Hourly" });
+                    const value = `${data.hours || hours || "1"}h, ${data.time || hourlyStartTime} ${data.amPm || hourlyAmPm}`;
+                    setDuration(`Hourly ${value}`);
+                  }}
+                >
+                  <Button
+                    type="button"
+                    variant={duration.startsWith("Hourly") ? "default" : "outline"}
+                    onClick={() => {
+                      const value = `${hours || "1"}h, ${hourlyStartTime} ${hourlyAmPm}`;
+                      setDuration(`Hourly ${value}`);
+                      setDurationDetails({ type: "Hourly", hours, time: hourlyStartTime, amPm: hourlyAmPm });
+                    }}
+                    className={duration.startsWith("Hourly") ? "bg-[#cabcbc] hover:bg-[#cabcbc]" : ""}
+                  >
+                    {duration.startsWith("Hourly") ? duration.replace("Hourly", "").trim() : "Hourly"}
+                  </Button>     
+                </DurationTooltip>
               </div>
             </div>
             <div className="space-y-2">
@@ -440,58 +496,6 @@ export default function GrowthDCA() {
             </div>
           </CollapsibleContent>
         </Collapsible>
-
-        {/* Schedule Section */}
-        {/* <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            Schedule Type
-            <span className="text-muted-foreground">ⓘ</span>
-          </Label>
-          <Select value={scheduleType} onValueChange={setScheduleType}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Schedule Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="daily">Daily</SelectItem>
-              <SelectItem value="weekly">Weekly</SelectItem>
-              <SelectItem value="monthly">Monthly</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            Selected Days
-            <span className="text-muted-foreground">ⓘ</span>
-          </Label>
-          <div className="flex flex-wrap gap-2">
-            {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => (
-              <Button
-                key={day}
-                type="button"
-                variant="outline"
-                className={`px-2 py-1 text-xs border rounded transition-colors duration-150 ${selectedDays.includes(day) ? "bg-[#4A1515] text-white border-[#4A1515]" : "bg-white text-black border-gray-300"}`}
-                onClick={() => setSelectedDays(selectedDays.includes(day) ? selectedDays.filter(d => d !== day) : [...selectedDays, day])}
-              >
-                {day}
-              </Button>
-            ))}
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            Repeat Time
-            <span className="text-muted-foreground">ⓘ</span>
-          </Label>
-          <Input type="time" value={repeatTime} onChange={e => setRepeatTime(e.target.value)} />
-        </div>
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            Timezone
-            <span className="text-muted-foreground">ⓘ</span>
-          </Label>
-          <Input placeholder="e.g. UTC" value={timezone} onChange={e => setTimezone(e.target.value)} />
-        </div> */}
-
         {error && <div className="text-red-500 text-sm">{error}</div>}
         {success && <div className="text-green-500 text-sm">{success}</div>}
 

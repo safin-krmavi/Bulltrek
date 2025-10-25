@@ -52,24 +52,60 @@ export function DurationTooltip({
     }
   }, [isSelected, manualClose]);
 
-  const [selectedTime, setSelectedTime] = React.useState(defaultTime || "");
-  const [selectedAmPm, setSelectedAmPm] = React.useState(defaultAmPm || "");
-  const [localDate] = React.useState(selectedDate || "");
-  const [localHours, setLocalHours] = React.useState("");
+  const [selectedTime, setSelectedTime] = React.useState(defaultTime || "12:00");
+  const [selectedAmPm, setSelectedAmPm] = React.useState(defaultAmPm || "AM");
+  const [localDate] = React.useState(selectedDate || "1");
+  const [localHours, setLocalHours] = React.useState("1");
+
+  // Update local state when props change
+  React.useEffect(() => {
+    if (defaultTime) setSelectedTime(defaultTime);
+    if (defaultAmPm) setSelectedAmPm(defaultAmPm);
+  }, [defaultTime, defaultAmPm]);
 
   const handleTimeChange = (time: string) => {
     setSelectedTime(time);
     onTimeChange(time);
+    // Trigger selection complete to save immediately
+    if (onSelectionComplete) {
+      onSelectionComplete({
+        type,
+        time,
+        amPm: selectedAmPm,
+        date: localDate,
+        hours: type === "Hourly" ? localHours : undefined
+      });
+    }
   };
 
   const handleAmPmChange = (value: string) => {
     setSelectedAmPm(value);
     if (onAmPmChange) onAmPmChange(value);
+    // Trigger selection complete to save immediately
+    if (onSelectionComplete) {
+      onSelectionComplete({
+        type,
+        time: selectedTime,
+        amPm: value,
+        date: localDate,
+        hours: type === "Hourly" ? localHours : undefined
+      });
+    }
   };
 
   const handleHoursChange = (value: string) => {
     setLocalHours(value);
     onTimeChange(value);
+    // Trigger selection complete to save immediately
+    if (onSelectionComplete) {
+      onSelectionComplete({
+        type,
+        time: selectedTime,
+        amPm: selectedAmPm,
+        date: localDate,
+        hours: value
+      });
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
